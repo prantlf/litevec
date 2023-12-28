@@ -72,6 +72,7 @@ impl PartialEq for ScoreIndex {
 impl Eq for ScoreIndex {}
 
 impl PartialOrd for ScoreIndex {
+	#[allow(clippy::non_canonical_partial_ord_impl)]
 	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
 		// The comparison is intentionally reversed here to make the heap a min-heap
 		other.score.partial_cmp(&self.score)

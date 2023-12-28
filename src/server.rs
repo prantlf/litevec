@@ -5,11 +5,10 @@ use std::{env, net::SocketAddr, thread, time};
 
 use crate::{db, routes, shutdown};
 
-#[allow(clippy::redundant_pub_crate)]
-pub(crate) async fn start() -> Result<()> {
+pub async fn start() -> Result<()> {
 	let mut openapi = OpenApi {
 		info: openapi::Info {
-			title: "Tinyvector".to_string(),
+			title: "litevec".to_string(),
 			version: env!("CARGO_PKG_VERSION").to_string(),
 			..openapi::Info::default()
 		},
