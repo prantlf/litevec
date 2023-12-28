@@ -18,13 +18,8 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      -name: build and test
-      -run: |
-        cargo clippy -- -D warnings
-        cargo outdated --exit-code 1
-        cargo audit
-        cargo pants
-        cargo test --all-features
+      - name: build and test
+        run: make build
 
       - uses: docker/metadata-action@v5
         if: ${{ github.event_name == 'push tag' }}
