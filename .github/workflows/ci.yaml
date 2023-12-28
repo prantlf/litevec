@@ -1,31 +1,57 @@
-on: [push, pull_request]
+name: Build and Release
 
-name: CI
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**/*.md'
+      - LICENSE
+  pull_request:
 
 jobs:
-  check:
-    name: Lint
+
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      -name: build and test
+      -run: |
+        cargo clippy -- -D warnings
+        cargo outdated --exit-code 1
+        cargo audit
+        cargo pants
+        cargo test --all-features
+
+      - uses: docker/metadata-action@v5
+        if: ${{ github.event_name == 'push tag' }}
+        id: meta
         with:
-          profile: minimal
-          toolchain: nightly
-          override: true
-          components: rustfmt, clippy
-      - name: Cache build
-        uses: Swatinem/rust-cache@v2
+          images: |
+            ghcr.io/prantlf/litevec
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+
+      - uses: docker/login-action@v3
+        if: ${{ github.event_name == 'push tag' }}
         with:
-          key: cache
-      - name: Check formatting
-        uses: actions-rs/cargo@v1
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v5
+        if: ${{ github.event_name == 'push tag' }}
         with:
-          command: fmt
-          args: --all -- --check
-      - name: Clippy
-        uses: actions-rs/clippy-check@v1
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - uses: docker/build-push-action@v5
+        if: ${{ github.event_name != 'push tag' }}
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          args: --all-features --all-targets
+          push: false
