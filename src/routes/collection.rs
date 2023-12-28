@@ -5,10 +5,7 @@ use aide::axum::{
 use axum::{extract::Path, http::StatusCode, Extension};
 use axum_jsonschema::Json;
 use schemars::JsonSchema;
-use std::{
-	collections::HashMap,
-	time::Instant,
-};
+use std::{collections::HashMap, time::Instant};
 
 use crate::{
 	db::{self, Collection, DbExtension, Embedding, Error as DbError, SimilarityResult},
