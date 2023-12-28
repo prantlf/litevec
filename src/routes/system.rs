@@ -2,11 +2,11 @@ use aide::axum::{
 	routing::{get, post},
 	ApiRouter,
 };
-use axum::http::StatusCode;
+use axum::{http::StatusCode, Extension};
 use axum_jsonschema::Json;
 use schemars::JsonSchema;
 
-use crate::shutdown;
+use crate::{db::DbExtension, shutdown};
 
 pub fn handler() -> ApiRouter {
 	ApiRouter::new()
@@ -43,7 +43,10 @@ pub async fn root() -> Json<RootResponse> {
 	})
 }
 
-pub async fn trigger_shutdown() -> StatusCode {
+pub async fn trigger_shutdown(Extension(db): DbExtension) -> StatusCode {
+	let db = db.read().await;
+	drop(db);
+
 	shutdown::trigger();
 
 	StatusCode::NO_CONTENT
