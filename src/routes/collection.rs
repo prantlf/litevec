@@ -42,8 +42,6 @@ pub fn handler() -> ApiRouter {
 
 /// Get collection names
 async fn get_collections(Extension(db): DbExtension) -> Json<Vec<String>> {
-	tracing::trace!("Getting collection names");
-
 	let results = db.read().await.list();
 
 	Json(results)
@@ -55,11 +53,6 @@ async fn create_collection(
 	Extension(db): DbExtension,
 	Json(req): Json<Collection>,
 ) -> Result<StatusCode, HTTPError> {
-	tracing::trace!(
-		"Creating collection {collection_name} with dimension {}",
-		req.dimension
-	);
-
 	let mut db = db.write().await;
 
 	let create_result = db.create_collection(collection_name, req.dimension, req.distance);
@@ -90,8 +83,6 @@ async fn query_collection(
 	Extension(db): DbExtension,
 	Json(req): Json<QueryCollectionQuery>,
 ) -> Result<Json<Vec<SimilarityResult>>, HTTPError> {
-	tracing::trace!("Querying collection {collection_name}");
-
 	let db = db.read().await;
 	let collection = db
 		.get_collection(&collection_name)
@@ -109,7 +100,7 @@ async fn query_collection(
 	);
 	drop(db);
 
-	tracing::trace!("Query to {collection_name} took {:?}", instant.elapsed());
+	tracing::trace!("Querying {collection_name} took {:?}", instant.elapsed());
 	Ok(Json(results))
 }
 
@@ -131,8 +122,6 @@ async fn get_collection_info(
 	Path(collection_name): Path<String>,
 	Extension(db): DbExtension,
 ) -> Result<Json<CollectionInfo>, HTTPError> {
-	tracing::trace!("Getting collection info for {collection_name}");
-
 	let db = db.read().await;
 	let collection = db
 		.get_collection(&collection_name)
@@ -151,8 +140,6 @@ async fn delete_collection(
 	Path(collection_name): Path<String>,
 	Extension(db): DbExtension,
 ) -> Result<StatusCode, HTTPError> {
-	tracing::trace!("Deleting collection {collection_name}");
-
 	let mut db = db.write().await;
 
 	let delete_result = db.delete_collection(&collection_name);
@@ -181,8 +168,6 @@ async fn insert_into_collection(
 	Extension(db): DbExtension,
 	Json(embedding_data): Json<EmbeddingData>,
 ) -> Result<StatusCode, HTTPError> {
-	tracing::trace!("Inserting into collection {collection_name}");
-
 	let mut db = db.write().await;
 
 	let embedding = Embedding {
@@ -213,8 +198,6 @@ async fn get_embeddings(
 	Path(collection_name): Path<String>,
 	Extension(db): DbExtension,
 ) -> Result<Json<Vec<String>>, HTTPError> {
-	tracing::trace!("Querying embeddings from collection {collection_name}");
-
 	let db = db.read().await;
 	let collection = db
 		.get_collection(&collection_name)
@@ -240,8 +223,6 @@ async fn query_embeddings(
 	Extension(db): DbExtension,
 	Json(req): Json<EmbeddingsQuery>,
 ) -> Result<Json<Vec<Embedding>>, HTTPError> {
-	tracing::trace!("Querying embeddings from collection {collection_name}");
-
 	let db = db.read().await;
 	let collection = db
 		.get_collection(&collection_name)
@@ -252,7 +233,7 @@ async fn query_embeddings(
 	drop(db);
 
 	tracing::trace!(
-		"Query embeddings from {collection_name} took {:?}",
+		"Filtering embeddings from {collection_name} took {:?}",
 		instant.elapsed()
 	);
 	Ok(Json(results))
@@ -264,8 +245,6 @@ async fn delete_embeddings(
 	Extension(db): DbExtension,
 	Json(req): Json<EmbeddingsQuery>,
 ) -> Result<StatusCode, HTTPError> {
-	tracing::trace!("Querying embeddings from collection {collection_name}");
-
 	let mut db = db.write().await;
 	let collection = db
 		.get_collection_mut(&collection_name)
@@ -283,8 +262,6 @@ async fn get_embedding(
 	Path((collection_name, embedding_id)): Path<(String, String)>,
 	Extension(db): DbExtension,
 ) -> Result<Json<Embedding>, HTTPError> {
-	tracing::trace!("Getting {embedding_id} from collection {collection_name}");
-
 	let db = db.read().await;
 	let collection = db
 		.get_collection(&collection_name)
@@ -302,8 +279,6 @@ async fn delete_embedding(
 	Path((collection_name, embedding_id)): Path<(String, String)>,
 	Extension(db): DbExtension,
 ) -> Result<StatusCode, HTTPError> {
-	tracing::trace!("Removing embedding {embedding_id} from collection {collection_name}");
-
 	let mut db = db.write().await;
 	let collection = db
 		.get_collection_mut(&collection_name)

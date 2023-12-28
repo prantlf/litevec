@@ -221,6 +221,8 @@ impl Db {
 		dimension: usize,
 		distance: Distance,
 	) -> Result<Collection, Error> {
+		tracing::debug!("Creating collection {name}");
+
 		if self.collections.contains_key(&name) {
 			return Err(Error::UniqueViolation);
 		}
@@ -237,6 +239,8 @@ impl Db {
 	}
 
 	pub fn delete_collection(&mut self, name: &str) -> Result<(), Error> {
+		tracing::debug!("Deleting collection {name}");
+
 		if !self.collections.contains_key(name) {
 			return Err(Error::NotFound);
 		}
