@@ -1,7 +1,8 @@
 use aide::openapi::{self, OpenApi};
 use anyhow::Result;
 use axum::Extension;
-use std::{env, net::SocketAddr, thread, time};
+use std::{env, net::SocketAddr};
+use tower_http::trace::TraceLayer;
 
 use crate::{db, routes, shutdown};
 
@@ -19,7 +20,8 @@ pub async fn start() -> Result<()> {
 	let router = routes::handler()
 		.finish_api(&mut openapi)
 		.layer(Extension(openapi))
-		.layer(db.extension());
+		.layer(db.extension())
+		.layer(TraceLayer::new_for_http());
 
 	let addr = SocketAddr::from((
 		[0, 0, 0, 0],
@@ -30,13 +32,12 @@ pub async fn start() -> Result<()> {
 		.handle(shutdown::handle())
 		.serve(router.into_make_service());
 
-	let shutdown_signal_fut = shutdown::wait_for_signal();
+	let signal_fut = shutdown::watch_for_signal(addr);
 	tokio::select! {
-		() = shutdown_signal_fut => shutdown::trigger(),
+		() = signal_fut => {},
 		res = server_fut => res?,
 	}
 
 	tracing::info!("Stopping server...");
-	thread::sleep(time::Duration::from_secs(1));
 	Ok(())
 }

@@ -1,5 +1,6 @@
 use axum_server::Handle;
 use lazy_static::lazy_static;
+use std::net::SocketAddr;
 use tokio::{signal, time::Duration};
 
 lazy_static! {
@@ -14,7 +15,7 @@ pub fn trigger() {
 	HANDLE.graceful_shutdown(Some(Duration::from_secs(1)));
 }
 
-pub async fn wait_for_signal() {
+pub async fn watch_for_signal(addr: SocketAddr) {
 	let ctrl_c = async {
 		signal::ctrl_c()
 			.await
@@ -35,5 +36,11 @@ pub async fn wait_for_signal() {
 	tokio::select! {
 		() = ctrl_c => {},
 		() = terminate => {},
+	}
+
+	let client = reqwest::Client::new();
+	let res = client.post(format!("http://{addr}/shutdown")).send().await;
+	match res {
+		Ok(_) | Err(_) => trigger(),
 	}
 }
