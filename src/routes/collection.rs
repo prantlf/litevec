@@ -25,23 +25,28 @@ pub fn handler() -> ApiRouter {
 			.api_route("/:collection_name/embeddings", get(get_embeddings))
 			.api_route("/:collection_name/embeddings", post(query_embeddings))
 			.api_route("/:collection_name/embeddings", delete(delete_embeddings))
-			.api_route("/:collection_name/embeddings/:embedding_id", put(insert_into_collection))
-			.api_route("/:collection_name/embeddings/:embedding_id", get(get_embedding))
-			.api_route("/:collection_name/embeddings/:embedding_id", delete(delete_embedding)),
+			.api_route(
+				"/:collection_name/embeddings/:embedding_id",
+				put(insert_into_collection),
+			)
+			.api_route(
+				"/:collection_name/embeddings/:embedding_id",
+				get(get_embedding),
+			)
+			.api_route(
+				"/:collection_name/embeddings/:embedding_id",
+				delete(delete_embedding),
+			),
 	)
 }
 
 /// Get collection names
-async fn get_collections(
-	Extension(db): DbExtension,
-) -> Result<Json<Vec<String>>, HTTPError> {
+async fn get_collections(Extension(db): DbExtension) -> Json<Vec<String>> {
 	tracing::trace!("Getting collection names");
 
-	let db = db.read().await;
+	let results = db.read().await.list();
 
-	let results = db.list();
-
-	Ok(Json(results))
+	Json(results)
 }
 
 /// Create a new collection
@@ -80,7 +85,6 @@ struct QueryCollectionQuery {
 }
 
 /// Query a collection
-#[allow(clippy::significant_drop_tightening)]
 async fn query_collection(
 	Path(collection_name): Path<String>,
 	Extension(db): DbExtension,
@@ -98,7 +102,11 @@ async fn query_collection(
 	}
 
 	let instant = Instant::now();
-	let results = collection.get_by_metadata_and_similarity(&req.filter.unwrap_or_default(), &req.query, req.k.unwrap_or(1));
+	let results = collection.get_by_metadata_and_similarity(
+		&req.filter.unwrap_or_default(),
+		&req.query,
+		req.k.unwrap_or(1),
+	);
 	drop(db);
 
 	tracing::trace!("Query to {collection_name} took {:?}", instant.elapsed());
@@ -151,7 +159,7 @@ async fn delete_collection(
 	drop(db);
 
 	match delete_result {
-		Ok(_) => Ok(StatusCode::NO_CONTENT),
+		Ok(()) => Ok(StatusCode::NO_CONTENT),
 		Err(DbError::NotFound) => {
 			Err(HTTPError::new("Collection not found").with_status(StatusCode::NOT_FOUND))
 		},
@@ -186,7 +194,7 @@ async fn insert_into_collection(
 	drop(db);
 
 	match insert_result {
-		Ok(_) => Ok(StatusCode::CREATED),
+		Ok(()) => Ok(StatusCode::CREATED),
 		Err(DbError::NotFound) => {
 			Err(HTTPError::new("Collection not found").with_status(StatusCode::NOT_FOUND))
 		},
@@ -243,7 +251,10 @@ async fn query_embeddings(
 	let results = collection.get_by_metadata(&req.filter, req.k.unwrap_or(1));
 	drop(db);
 
-	tracing::trace!("Query embeddings from {collection_name} took {:?}", instant.elapsed());
+	tracing::trace!(
+		"Query embeddings from {collection_name} took {:?}",
+		instant.elapsed()
+	);
 	Ok(Json(results))
 }
 
@@ -267,6 +278,7 @@ async fn delete_embeddings(
 }
 
 /// Get an embedding from a collection
+#[allow(clippy::significant_drop_tightening)]
 async fn get_embedding(
 	Path((collection_name, embedding_id)): Path<(String, String)>,
 	Extension(db): DbExtension,
@@ -300,8 +312,9 @@ async fn delete_embedding(
 	let delete_result = collection.delete(&embedding_id);
 	drop(db);
 
-	match delete_result {
-		true => Ok(StatusCode::NO_CONTENT),
-		false => Err(HTTPError::new("Embedding not found").with_status(StatusCode::NOT_FOUND)),
+	if delete_result {
+		Ok(StatusCode::NO_CONTENT)
+	} else {
+		Err(HTTPError::new("Embedding not found").with_status(StatusCode::NOT_FOUND))
 	}
 }

@@ -1,15 +1,17 @@
 use axum_server::Handle;
-use once_cell::sync::Lazy;
+use lazy_static::lazy_static;
 use tokio::{signal, time::Duration};
 
-static HANDLE: Lazy<Handle> = Lazy::new(|| Handle::new());
+lazy_static! {
+	static ref HANDLE: Handle = Handle::new();
+}
 
 pub fn handle() -> Handle {
-	(*HANDLE).clone()
+	HANDLE.clone()
 }
 
 pub fn trigger() {
-	HANDLE.graceful_shutdown(Some(Duration::from_secs(1)))
+	HANDLE.graceful_shutdown(Some(Duration::from_secs(1)));
 }
 
 pub async fn wait_for_signal() {
@@ -31,11 +33,7 @@ pub async fn wait_for_signal() {
 	let terminate = std::future::pending::<()>();
 
 	tokio::select! {
-		() = ctrl_c => {
-			tracing::info!("Received Ctrl+C signal");
-		},
-		() = terminate => {
-			tracing::info!("Received terminate signal");
-		},
+		() = ctrl_c => {},
+		() = terminate => {},
 	}
 }

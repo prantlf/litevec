@@ -2,6 +2,7 @@ use aide::axum::{
 	routing::{get, post},
 	ApiRouter,
 };
+use axum::http::StatusCode;
 use axum_jsonschema::Json;
 use schemars::JsonSchema;
 
@@ -30,7 +31,6 @@ pub struct RootResponse {
 	pub version: AppVersion,
 }
 
-#[allow(clippy::unused_async)]
 pub async fn root() -> Json<RootResponse> {
 	Json(RootResponse {
 		docs_url: "/docs".to_string(),
@@ -43,9 +43,8 @@ pub async fn root() -> Json<RootResponse> {
 	})
 }
 
-#[allow(clippy::unused_async)]
-pub async fn trigger_shutdown() -> Json<String> {
+pub async fn trigger_shutdown() -> StatusCode {
 	shutdown::trigger();
 
-	Json("Shutting down...".to_string())
+	StatusCode::NO_CONTENT
 }
