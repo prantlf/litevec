@@ -1,0 +1,9 @@
+---
+version: '3.4'
+services:
+  litevec:
+    image: litevec
+    ports:
+      - 8000:8000
+    volumes:
+      - ./storage:/tinyvector/storage
