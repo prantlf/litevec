@@ -12,6 +12,10 @@ COPY . .
 RUN cargo build --release --bin litevec
 
 FROM debian:bookworm-slim as runtime
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install -y --no-install-recommends libssl3 && \
+    rm -rf /var/lib/apt/lists/*
 WORKDIR /litevec
 COPY --from=builder /litevec/target/release/litevec /usr/local/bin
 
