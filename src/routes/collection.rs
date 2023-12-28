@@ -239,11 +239,17 @@ async fn query_embeddings(
 	Ok(Json(results))
 }
 
+#[derive(Debug, serde::Deserialize, JsonSchema)]
+struct EmbeddingsDeleteQuery {
+	/// Metadata to filter with
+	filter: Vec<HashMap<String, String>>,
+}
+
 /// Delete embeddings in a collection
 async fn delete_embeddings(
 	Path(collection_name): Path<String>,
 	Extension(db): DbExtension,
-	Json(req): Json<EmbeddingsQuery>,
+	Json(req): Json<EmbeddingsDeleteQuery>,
 ) -> Result<StatusCode, HTTPError> {
 	let mut db = db.write().await;
 	let collection = db
