@@ -1,0 +1,11 @@
+Card Dealer
+===========
+
+This class requires a few tweaks for it to be considered ready for playing. If you are interested in playing as a Card Dealer talk to your DM to see what changes there will be.
+Enemies to the left. Enemies to the right. There is nowhere for the elfish man to run. As it is with any gamble, he will have to take his chances. The first opponent readies to fire his crossbow. Without warning, a razor-edged card is thrown in his face, making him miss his target completely. The second opponent swings his sword, and the elf's quick reflexes allow him to jump out of the way. Drawing two cards at once, the elfish man cuts both of his opponents at once. Before they can recover, they are blinded by a flurry of cards thrown into the air. When the cards settle, the elf is gone from sight.
+
+During an unfriendly game of cards, a tiefling woman is accused of cheating. The eyes of her game partners glint with malice. Violence is sure to follow. The tiefling flips the table and lets her cards fly. The first opponent finds himself burned, as if by fire. The second is hit by the sudden darkness of a necrotic attack. The third tries to cast a damaging spell on the tiefling. The tiefling slams a card on the table, and the spell being cast is negated completely. Finally, she flips a card through her fingers and teleports out of the danger zone, escaping with her winnings.
+
+A band of barbarians battles with a human man. The human fans out a hand of five cards, and throws them all at once, striking each of his opponents. The human senses another enemy behind him. he throws a card at the barbarian in front of him, and ducks as it ricochets off his target, flies over his head, and strikes the opponent behind him. Suddenly, the barbarians find themselves struck by an onslaught of projectiles, somehow more powerful than the ones before. It is only a matter of seconds before they are all dead on the ground.
+
+The Card Dealer is a master of deceptive combat. Through nothing more than the use of a simple deck of cards, they may easily disrupt the flow of combat to their favor and destroy their enemies.

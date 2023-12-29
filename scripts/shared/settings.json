@@ -1,0 +1,9 @@
+{
+  "vectorDbUrl": "http://127.0.0.1:8000",
+  "collection": "dnd",
+  "dimension": 4096,
+  "distance": "cosine",
+  "k": 5,
+  "llmUrl": "http://127.0.0.1:11434/api",
+  "model": "mistral"
+}

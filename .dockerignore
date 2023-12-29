@@ -1,4 +1,10 @@
+.github
+data
+docs
+scripts
 storage
 target
-.github
+CHANGELOG.md
+Makefile
 README.md
+package.json
