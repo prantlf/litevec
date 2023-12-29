@@ -2,7 +2,7 @@
 
 - [System](#system) - control the server
 - [Collections](#collections) - manage collections of embeddings and search by similarity and metadata
-- [Embeddings](#embeddings) - - manage embeddings in a collections and filter by metadata
+- [Embeddings](#embeddings) - manage embeddings in a collections and filter by metadata
 
 ## System
 

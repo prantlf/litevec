@@ -51,7 +51,7 @@ The `storage` directory will be created in the current directory as needed.
 
 Runtime parameters of the service can be customised using the process environment variables below:
 
-| Name                       | Default    | Description                                |
+| Name                      | Default    | Description                                 |
 |:--------------------------|:-----------|:--------------------------------------------|
 | LITEVEC_COMPRESSION_LIMIT | 1024       | minimum response size to get compressed [b] |
 | LITEVEC_CORS_MAXAGE       | 86400      | how long stays CORS preflighting valid [s]  |

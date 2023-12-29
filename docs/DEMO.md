@@ -40,7 +40,7 @@ Documents are indexed in a form of vectorised chunks - embeddings. This is perfo
 This demo expects nicely prepared textual documents, for example:
 
     Barbarian
-    ========
+    =========
 
     A tall human tribesman strides through a blizzard, ... who dared poach his people’s elk herd.
 
@@ -123,14 +123,14 @@ Remaining [scripts] demonstrate other use cases for the REST API. They have no p
 
 | Path                 | Description                                            |
 |:---------------------|:-------------------------------------------------------|
-| create-collection    | create a new collection                                |
-| delete-collection    | create the collection                                  |
-| get-collection       | prints information about the collection                |
-| get-embedding        | prints information about an embedding                  |
-| index-documents      | indexes sample  documents in the collection            |
-| list-embeddings      | prints identifiers of all embeddings in the collection |
-| search-phrase        | searches for embeddings similar to a phrase            |
-| shutdown             | shuts down the service                                 |
+| create-collection.js | create a new collection                                |
+| delete-collection.js | create the collection                                  |
+| get-collection.js    | prints information about the collection                |
+| get-embedding.js     | prints information about an embedding                  |
+| index-documents.js   | indexes sample  documents in the collection            |
+| list-embeddings.js   | prints identifiers of all embeddings in the collection |
+| search-phrase.js     | searches for embeddings similar to a phrase            |
+| shutdown.js          | shuts down the service                                 |
 | shared/embeddings.js | common functions to manage embeddings                  |
 | shared/langauge.js   | text-splitting function                                |
 | shared/safe-fetch.js | wrappers for network requests                          |
