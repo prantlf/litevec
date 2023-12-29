@@ -2,7 +2,7 @@
 version: '3.4'
 services:
   litevec:
-    image: litevec
+    image: ghcr.io/prantlf/litevec
     ports:
       - 8000:8000
     volumes:
