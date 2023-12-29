@@ -15,6 +15,8 @@ This is a fork of [tinyvector] with the following goals:
 * Focus only on embeddings. Do not integrate LLMs to split and vectorise text.
 * Support CORS and other network features.
 
+There's a [demo example] included.
+
 ## Getting Started
 
 Using Docker is easier than running the services built from the scratch. But building is easy. You need just the [Rust] compiler.
@@ -49,25 +51,26 @@ The `storage` directory will be created in the current directory as needed.
 
 Runtime parameters of the service can be customised using the process environment variables below:
 
-| Name                  | Default    | Description                               |
-|:----------------------|:-----------|:------------------------------------------|
-| LITEVEC_HOST          | 0.0.0.0    | IP address to bind the server to          |
-| LITEVEC_CORS_MAXAGE   | 86400      | how lon stays CORS preflighting valid [s] |
-| LITEVEC_PORT          | 8000       | port address to bind the server to        |
-| LITEVEC_PAYLOAD_LIMIT | 1073741824 | maximum size of request payload [bytes]   |
-| LITEVEC_TIMEOUT       | 30         | maximum duration of a request [s]         |
-| RUST_LOG              | info       | log level (`info`, `debug`, `trace`)      |
+| Name                       | Default    | Description                                |
+|:--------------------------|:-----------|:--------------------------------------------|
+| LITEVEC_COMPRESSION_LIMIT | 1024       | minimum response size to get compressed [b] |
+| LITEVEC_CORS_MAXAGE       | 86400      | how long stays CORS preflighting valid [s]  |
+| LITEVEC_HOST              | 0.0.0.0    | IP address to bind the server to            |
+| LITEVEC_PORT              | 8000       | port address to bind the server to          |
+| LITEVEC_PAYLOAD_LIMIT     | 1073741824 | maximum size of request payload [b]         |
+| LITEVEC_TIMEOUT           | 30         | maximum duration of a request [s]           |
+| RUST_LOG                  | info       | log level (`info`, `debug`, `trace`)        |
 
 ## API
 
-Run `litevec` and open http://localhost:8000/docs to inspect and try the available REST API endpoints.
+See the summary of the endpoints below, [API details] on a separate page. Run `litevec` and open http://localhost:8000/docs to inspect and try the available REST API endpoints live.
 
 System endpoints:
 
-| Method | Path      | Description           |
-|:-------|:----------|:----------------------|
-| GET    | /         | obtain API metadata   |
-| POST   | /shutdown | shut the service down |
+| Method | Path      | Description                                                 |
+|:-------|:----------|:------------------------------------------------------------|
+| GET    | /         | obtain API metadata                                         |
+| POST   | /shutdown | shut the service down (sending SIGTERM or SIGINT works too) |
 
 Documentation endpoints:
 
@@ -86,55 +89,6 @@ Endpoints for embedding collections and similarity search:
 | GET    | /collections/:collection_name | get information about a collection (3)                                          |
 | DELETE | /collections/:collection_name | delete a collection                                                             |
 
-
-Similarity search input and output (1):
-
-```ts
-interface SearchInput {
-	/// Vector to query with
-	query: float[]
-	/// Metadata to filter with
-	filter?: Record<String, String>[]
-	/// Number of results to return
-	k?: integer
-}
-
-interface SearchOutput {
-	/// Similarity score
-	score: float
-	/// Matching embedding
-	embedding: Embedding
-}
-```
-
-Collection input (2):
-
-```ts
-interface Collection {
-	/// Dimension of the vectors in the collection
-	dimension: integer
-	/// Distance metric used for querying
-	distance: 'cosine' | 'dot' | 'euclidean'
-	/// Embeddings in the collection
-	embeddings: Embedding[]
-}
-```
-
-Collection output (3):
-
-```ts
-interface Collection {
-	/// Name of the collection
-	name: string
-	/// Dimension of the vectors in the collection
-	dimension: integer
-	/// Distance metric used for querying
-	distance: 'cosine' | 'dot' | 'euclidean'
-	/// Number of embeddings in the collection
-	embedding_count: integer
-}
-```
-
 Endpoints for embeddings:
 
 | Method | Path                                                   | Description                            |
@@ -146,30 +100,6 @@ Endpoints for embeddings:
 | GET    | /collections/:collection_name/embeddings/:embedding_id | get information about an embedding (4) |
 | DELETE | /collections/:collection_name/embeddings/:embedding_id | delete an embedding                    |
 
-Embedding output (4):
-
-```ts
-interface Embedding {
-	/// Unique identifier
-	id: string
-	/// Vector computed from a text chunk
-	vector: float[]
-	/// Metadata about the source text
-	metadata?: Option<HashMap<String, String>>,
-}
-```
-
-Embedding input (5):
-
-```ts
-interface Embedding {
-	/// Vector computed from a text chunk
-	vector: float[]
-	/// Metadata about the source text
-	metadata?: Option<HashMap<String, String>>,
-}
-```
-
 ## License
 
 Copyright (c) 2023 Miguel Piedrafita
@@ -177,6 +107,9 @@ Copyright (c) 2023 Ferdinand Prantl
 
 Licensed under the MIT license.
 
-[Rust]: https://rustup.rs/
 [embeddings at OpenAI]: https://platform.openai.com/docs/guides/embeddings/what-are-embeddings
+[tinyvector]: https://github.com/m1guelpf/tinyvector
+[demo example]: ./docs/DEMO.md
+[Rust]: https://rustup.rs
 [docker-compose.yml]: ./docker-compose.yml
+[API details]: ./docs/API.md
