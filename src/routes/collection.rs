@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 use std::{collections::HashMap, time::Instant};
 
 use crate::{
-	db::{self, Collection, DbExtension, Embedding, Error as DbError, SimilarityResult},
+	db::{self, DbExtension, Embedding, Error as DbError, SimilarityResult},
 	errors::HTTPError,
 	similarity::Distance,
 };
@@ -47,11 +47,20 @@ async fn get_collections(Extension(db): DbExtension) -> Json<Vec<String>> {
 	Json(results)
 }
 
+#[allow(clippy::module_name_repetitions)]
+#[derive(Debug, serde::Deserialize, JsonSchema)]
+pub struct CollectionData {
+	/// Dimension of the vectors in the collection
+	pub dimension: usize,
+	/// Distance metric used for querying
+	pub distance: Distance,
+}
+
 /// Create a new collection
 async fn create_collection(
 	Path(collection_name): Path<String>,
 	Extension(db): DbExtension,
-	Json(req): Json<Collection>,
+	Json(req): Json<CollectionData>,
 ) -> Result<StatusCode, HTTPError> {
 	let mut db = db.write().await;
 
