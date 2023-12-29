@@ -1,19 +1,20 @@
 use aide::openapi::{self, OpenApi};
 use anyhow::Result;
 use axum::{
-	Extension,
 	http::{header::CONTENT_TYPE, Method},
+	Extension,
 };
 use std::{env, net::SocketAddr};
 use tokio::time::Duration;
 use tower_http::{
-	compression::CompressionLayer,
+	compression::{predicate::SizeAbove, CompressionLayer, DefaultPredicate, Predicate},
 	cors::{Any, CorsLayer},
 	decompression::RequestDecompressionLayer,
 	limit::RequestBodyLimitLayer,
 	timeout::TimeoutLayer,
 	trace::TraceLayer,
 	validate_request::ValidateRequestHeaderLayer,
+	CompressionLevel,
 };
 
 use crate::{db, routes, shutdown};
@@ -28,25 +29,33 @@ pub async fn start() -> Result<()> {
 		..OpenApi::default()
 	};
 
+	let compression_limit =
+		env::var("LITEVEC_COMPRESSION_LIMIT").map_or(Ok(1024), |v| v.parse())?;
+	let compression_predicate = DefaultPredicate::new().and(SizeAbove::new(compression_limit));
+	let compression = CompressionLayer::new()
+		.quality(CompressionLevel::Best)
+		.compress_when(compression_predicate);
+
 	let maxage = env::var("LITEVEC_CORS_MAXAGE").map_or(Ok(86_400), |v| v.parse())?;
 	let cors = CorsLayer::new()
-    .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+		.allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
 		.allow_headers([CONTENT_TYPE])
 		.max_age(Duration::from_secs(maxage))
-    .allow_origin(Any);
+		.allow_origin(Any);
 
 	let db = db::from_store()?;
 	let timeout = env::var("LITEVEC_TIMEOUT").map_or(Ok(30), |v| v.parse())?;
-	let limit = env::var("LITEVEC_PAYLOAD_LIMIT").map_or(Ok(1_073_741_824), |v| v.parse())?;
+	let payload_limit =
+		env::var("LITEVEC_PAYLOAD_LIMIT").map_or(Ok(1_073_741_824), |v| v.parse())?;
 	let router = routes::handler()
 		.finish_api(&mut openapi)
 		.layer(Extension(openapi))
 		.layer(db.extension())
 		.layer(TimeoutLayer::new(Duration::from_secs(timeout)))
-		.layer(RequestBodyLimitLayer::new(limit))
+		.layer(RequestBodyLimitLayer::new(payload_limit))
 		.layer(ValidateRequestHeaderLayer::accept("application/json"))
 		.layer(RequestDecompressionLayer::new())
-		.layer(CompressionLayer::new())
+		.layer(compression)
 		.layer(cors)
 		.layer(TraceLayer::new_for_http());
 
