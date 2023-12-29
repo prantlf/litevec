@@ -7,6 +7,8 @@ on:
     paths-ignore:
       - '**/*.md'
       - LICENSE
+    tags:
+      - 'v*'
   pull_request:
 
 jobs:
@@ -22,7 +24,7 @@ jobs:
         run: make lint
 
       - uses: docker/metadata-action@v5
-        if: ${{ github.event_name == 'push tag' }}
+        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
         id: meta
         with:
           images: |
@@ -33,20 +35,20 @@ jobs:
             type=semver,pattern={{major}}
 
       - uses: docker/login-action@v3
-        if: ${{ github.event_name == 'push tag' }}
+        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: docker/build-push-action@v5
-        if: ${{ github.event_name == 'push tag' }}
+        if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
         with:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
       - uses: docker/build-push-action@v5
-        if: ${{ github.event_name != 'push tag' }}
+        if: github.event_name != 'push' || contains(github.ref, 'refs/tags/')
         with:
           push: false
