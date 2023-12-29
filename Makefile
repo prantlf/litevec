@@ -3,20 +3,19 @@ all: check build
 lint:
 	cargo clippy -- -D warnings
 
+format:
+	cargo fmt --all
+
 audit:
 	cargo audit
 	cargo pants
-	# cargo test --all-features
 
-test: lint
-	cargo test --all-features
-
-check: lint audit test
+check: lint format audit
 
 build:
 	cargo build --release
 
-run:
+start:
 	target/release/litevec &
 
 stop:

@@ -18,8 +18,8 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
 
-      - name: build and test
-        run: make build
+      - name: Run lint
+        run: make lint
 
       - uses: docker/metadata-action@v5
         if: ${{ github.event_name == 'push tag' }}
