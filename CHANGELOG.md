@@ -1,5 +1,15 @@
 # Changes
 
+## [0.2.0](https://github.com/prantlf/litevec/compare/v0.1.0...v0.2.0) (2023-12-31)
+
+### Features
+
+* Load .env files automatically ([0ab1300](https://github.com/prantlf/litevec/commit/0ab1300966ab4e486450de9bf460663404c21ad1))
+
+### Bug Fixes
+
+* Fix the image name in the docker-compose configuration ([2c903e3](https://github.com/prantlf/litevec/commit/2c903e3b528689eea651e6843069b081299d489e))
+
 ## [0.1.0](https://github.com/prantlf/litevec/compare/v0.0.1...v0.1.0) (2023-12-29)
 
 ### Features
