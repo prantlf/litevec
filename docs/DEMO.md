@@ -51,10 +51,9 @@ This demo expects nicely prepared textual documents, for example:
 
     People of towns and cities take pride in their settled ways, ... where their tribes live and hunt.
 
-* A line starting with a letter and ending with a symbol is considered a paragraph.
+* Title, subtitles and paragraphs are separated by two line breaks.
 * A line starting and ending with a letter is considered a title. The first one is a document title, the others are chapter titles.
-* Consecutive lines starting with a symbol and ending with a letter (bulleted list) are collected as a paragraph.
-* Empty lines and lines starting and ending with symbols are ignored.
+* Each chapter is considered to start on a new page.
 
 Perform:
 
@@ -132,7 +131,7 @@ Remaining [scripts] demonstrate other use cases for the REST API. They have no p
 | search-phrase.js     | searches for embeddings similar to a phrase            |
 | shutdown.js          | shuts down the service                                 |
 | shared/embeddings.js | common functions to manage embeddings                  |
-| shared/langauge.js   | text-splitting function                                |
+| shared/splitter.js   | text-splitting function                                |
 | shared/safe-fetch.js | wrappers for network requests                          |
 | shared/settings/json | common parameters for all scripts                      |
 

@@ -1,11 +1,11 @@
 import { readdir, readFile } from 'fs/promises'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
-import { breakDownText } from './shared/language.js'
+import { splitText } from './shared/splitter.js'
 import { index, vectorise } from './shared/embeddings.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const datadir = join(__dirname, '../../data')
+const datadir = join(__dirname, '../data')
 
 async function indexParagraph(title, name, chapter, page, partext, parnum) {
   const vector = await vectorise(partext)
@@ -16,7 +16,7 @@ async function indexFile(group, file) {
   const name = `${group}/${file.slice(0, -4)}`
   console.log(name)
   const text = await readFile(join(datadir, group, file), 'utf8')
-  const { title, pars } = breakDownText(text)
+  const { title, pars } = splitText(text)
   // await Promise.all(text.map(({ chapter, page, partext }, parnum) =>
   //   postParagraph(title, name, chapter, String(page), partext, String(parnum))))
   for (let parnum = 0; parnum < pars.length; ++parnum) {
