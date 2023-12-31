@@ -19,7 +19,7 @@ There's a [demo example] included.
 
 ## Getting Started
 
-Using Docker is easier than running the services built from the scratch. But building is easy. You need just the [Rust] compiler.
+Using Docker is easier than running the services built from the scratch. But building is easy too. You need just the [Rust] compiler.
 
 ### Using Docker
 
@@ -61,6 +61,8 @@ Runtime parameters of the service can be customised using the process environmen
 | LITEVEC_TIMEOUT           | 30         | maximum duration of a request [s]           |
 | RUST_LOG                  | info       | log level (`info`, `debug`, `trace`)        |
 
+A `.env` file with environment variables will be loaded and processed automatically.
+
 ## API
 
 See the summary of the endpoints below, [API details] on a separate page. Run `litevec` and open http://localhost:8000/docs to inspect and try the available REST API endpoints live.
@@ -81,28 +83,28 @@ Documentation endpoints:
 
 Endpoints for embedding collections and similarity search:
 
-| Method | Path                          | Description                                                                     |
-|:-------|:------------------------------|:--------------------------------------------------------------------------------|
-| GET    | /collections                  | list collection names                                                           |
-| POST   | /collections/:collection_name | search the collection for similar vectors while filtering with metadata too (1) |
-| PUT    | /collections/:collection_name | create a collection (2)                                                         |
-| GET    | /collections/:collection_name | get information about a collection (3)                                          |
-| DELETE | /collections/:collection_name | delete a collection                                                             |
+| Method | Path                          | Description                                                                 |
+|:-------|:------------------------------|:----------------------------------------------------------------------------|
+| GET    | /collections                  | list collection names                                                       |
+| POST   | /collections/:collection_name | search the collection for similar vectors while filtering with metadata too |
+| PUT    | /collections/:collection_name | create a collection                                                         |
+| GET    | /collections/:collection_name | get information about a collection                                          |
+| DELETE | /collections/:collection_name | delete a collection                                                         |
 
 Endpoints for embeddings:
 
-| Method | Path                                                   | Description                            |
-|:-------|:-------------------------------------------------------|:---------------------------------------|
-| GET    | /collections/:collection_name/embeddings               | list embedding identifiers             |
-| POST   | /collections/:collection_name/embeddings               | filter embeddings with metadata (4)    |
-| DELETE | /collections/:collection_name/embeddings               | delete embeddings by metadata          |
-| PUT    | /collections/:collection_name/embeddings/:embedding_id | create an embedding (5)                |
-| GET    | /collections/:collection_name/embeddings/:embedding_id | get information about an embedding (4) |
-| DELETE | /collections/:collection_name/embeddings/:embedding_id | delete an embedding                    |
+| Method | Path                                                   | Description                        |
+|:-------|:-------------------------------------------------------|:-----------------------------------|
+| GET    | /collections/:collection_name/embeddings               | list embedding identifiers         |
+| POST   | /collections/:collection_name/embeddings               | filter embeddings with metadata    |
+| DELETE | /collections/:collection_name/embeddings               | delete embeddings by metadata      |
+| PUT    | /collections/:collection_name/embeddings/:embedding_id | create an embedding                |
+| GET    | /collections/:collection_name/embeddings/:embedding_id | get information about an embedding |
+| DELETE | /collections/:collection_name/embeddings/:embedding_id | delete an embedding                |
 
 ## License
 
-Copyright (c) 2023 Miguel Piedrafita
+Copyright (c) 2023 Miguel Piedrafita<br>
 Copyright (c) 2023 Ferdinand Prantl
 
 Licensed under the MIT license.
