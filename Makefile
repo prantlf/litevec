@@ -6,11 +6,18 @@ lint:
 format:
 	cargo fmt --all
 
+outdated:
+	cargo outdated --exit-code 1
+
 audit:
 	cargo audit
 	cargo pants
 
-check: lint format audit
+check: lint format outdated audit
+
+upgrade:
+	    cargo update
+		cargo upgrade --incompatible
 
 build:
 	cargo build --release
@@ -19,4 +26,20 @@ start:
 	target/release/litevec &
 
 stop:
-	curl -v http://localhost:8000/shutdown -X POST
+	curl -X POST -s -w "%{http_code}" http://localhost:8000/shutdown
+
+clean:
+	rm -rf target
+
+build-docker:
+	docker build -t litevec .
+
+start-docker:
+	docker run --rm -dt -p 8000:8000 -v $PWD/litevec-storage:/litevec/storage \
+		--name litevec litevec
+
+kill-docker:
+	docker container kill litevec
+
+logs-docker:
+	docker logs litevec
