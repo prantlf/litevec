@@ -35,7 +35,7 @@ build-docker:
 	docker build -t litevec .
 
 start-docker:
-	docker run --rm -dt -p 8000:8000 -v $PWD/litevec-storage:/litevec/storage \
+	docker run --rm -dt -p 8000:8000 -v $PWD/storage:/litevec/storage \
 		--name litevec litevec
 
 kill-docker:
