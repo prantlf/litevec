@@ -76,7 +76,8 @@ impl Collection {
 	}
 
 	pub fn get_by_metadata(&self, filter: &[HashMap<String, String>], k: usize) -> Vec<Embedding> {
-		let embeddings: Vec<Embedding> = self.embeddings
+		let embeddings: Vec<Embedding> = self
+			.embeddings
 			.iter()
 			.filter_map(|embedding| {
 				if match_embedding(embedding, filter) {
@@ -291,7 +292,11 @@ impl Db {
 			embedding.vector = normalize(&embedding.vector);
 		}
 
-		tracing::debug!("Inserting embedding {} to collection {}", embedding.id, collection_name);
+		tracing::debug!(
+			"Inserting embedding {} to collection {}",
+			embedding.id,
+			collection_name
+		);
 		collection.embeddings.push(embedding);
 		self.set_dirty();
 
@@ -326,7 +331,7 @@ impl Db {
 		Ok(bincode::deserialize(&db[..])?)
 	}
 
-	pub fn is_dirty(&self) -> bool {
+	pub const fn is_dirty(&self) -> bool {
 		self.dirty
 	}
 
@@ -357,6 +362,7 @@ pub fn from_store() -> anyhow::Result<Arc<RwLock<Db>>> {
 	Ok(Arc::new(RwLock::new(Db::load_from_store()?)))
 }
 
+#[allow(clippy::similar_names)]
 pub fn autosave(db: Arc<RwLock<Db>>, duration: u32) {
 	let mut interval = time::interval(Duration::from_secs(duration.into()));
 	tokio::spawn(async move {

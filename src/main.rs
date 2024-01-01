@@ -18,9 +18,12 @@ async fn main() -> Result<()> {
 	dotenv().ok();
 
 	tracing_subscriber::registry()
-		.with(tracing_subscriber::fmt::layer().with_filter(
-			EnvFilter::try_from_default_env().unwrap_or_else(|_| "litevec=debug,tower_http=debug".into()),
-		))
+		.with(
+			tracing_subscriber::fmt::layer().with_filter(
+				EnvFilter::try_from_default_env()
+					.unwrap_or_else(|_| "litevec=debug,tower_http=debug".into()),
+			),
+		)
 		.init();
 
 	server::start().await
