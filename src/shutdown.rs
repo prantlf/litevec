@@ -41,6 +41,6 @@ pub async fn watch_for_signal(addr: SocketAddr) {
 	let client = reqwest::Client::new();
 	let res = client.post(format!("http://{addr}/shutdown")).send().await;
 	match res {
-		Ok(_) | Err(_) => trigger(),
+		Ok(_) | Err(_) => {},
 	}
 }

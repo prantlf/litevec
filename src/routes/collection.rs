@@ -42,7 +42,10 @@ pub fn handler() -> ApiRouter {
 
 /// Get collection names
 async fn get_collections(Extension(db): DbExtension) -> Json<Vec<String>> {
-	let results = db.read().await.list();
+	let db = db.read().await;
+
+	let results = db.list();
+	drop(db);
 
 	Json(results)
 }
@@ -265,7 +268,9 @@ async fn delete_embeddings(
 		.get_collection_mut(&collection_name)
 		.ok_or_else(|| HTTPError::new("Collection not found").with_status(StatusCode::NOT_FOUND))?;
 
-	collection.delete_by_metadata(&req.filter);
+	if collection.delete_by_metadata(&req.filter) {
+		db.set_dirty();
+	}
 	drop(db);
 
 	Ok(StatusCode::NO_CONTENT)
@@ -290,6 +295,7 @@ async fn get_embedding(
 }
 
 /// Delete an embedding from a collection
+#[allow(clippy::significant_drop_tightening)]
 async fn delete_embedding(
 	Path((collection_name, embedding_id)): Path<(String, String)>,
 	Extension(db): DbExtension,
@@ -300,9 +306,9 @@ async fn delete_embedding(
 		.ok_or_else(|| HTTPError::new("Collection not found").with_status(StatusCode::NOT_FOUND))?;
 
 	let delete_result = collection.delete(&embedding_id);
-	drop(db);
 
 	if delete_result {
+		db.set_dirty();
 		Ok(StatusCode::NO_CONTENT)
 	} else {
 		Err(HTTPError::new("Embedding not found").with_status(StatusCode::NOT_FOUND))

@@ -4,7 +4,7 @@ use axum::{
 	http::{header::CONTENT_TYPE, Method},
 	Extension,
 };
-use std::{env, net::SocketAddr};
+use std::{env, net::SocketAddr, sync::Arc};
 use tokio::time::Duration;
 use tower_http::{
 	compression::{predicate::SizeAbove, CompressionLayer, DefaultPredicate, Predicate},
@@ -20,6 +20,10 @@ use tower_http::{
 use crate::{db, routes, shutdown};
 
 pub async fn start() -> Result<()> {
+	let db = db::from_store()?;
+	let duration = env::var("LITEVEC_AUTOSAVE_INTERVAL").map_or(Ok(10), |v| v.parse())?;
+	db::autosave(Arc::clone(&db), duration);
+
 	let mut openapi = OpenApi {
 		info: openapi::Info {
 			title: "litevec".to_string(),
@@ -43,14 +47,13 @@ pub async fn start() -> Result<()> {
 		.max_age(Duration::from_secs(maxage))
 		.allow_origin(Any);
 
-	let db = db::from_store()?;
 	let timeout = env::var("LITEVEC_TIMEOUT").map_or(Ok(30), |v| v.parse())?;
 	let payload_limit =
 		env::var("LITEVEC_PAYLOAD_LIMIT").map_or(Ok(1_073_741_824), |v| v.parse())?;
 	let router = routes::handler()
 		.finish_api(&mut openapi)
 		.layer(Extension(openapi))
-		.layer(db.extension())
+		.layer(Extension(db))
 		.layer(TimeoutLayer::new(Duration::from_secs(timeout)))
 		.layer(RequestBodyLimitLayer::new(payload_limit))
 		.layer(ValidateRequestHeaderLayer::accept("application/json"))

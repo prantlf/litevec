@@ -10,7 +10,10 @@ use std::{
 	path::PathBuf,
 	sync::Arc,
 };
-use tokio::sync::RwLock;
+use tokio::{
+	sync::RwLock,
+	time::{self, Duration},
+};
 
 use crate::similarity::{get_cache_attr, get_distance_fn, normalize, Distance, ScoreIndex};
 
@@ -37,6 +40,9 @@ pub enum Error {
 pub struct Db {
 	/// Collections in the database
 	pub collections: HashMap<String, Collection>,
+	/// If a collection was modified and hasn't been saved yet
+	#[serde(skip)]
+	dirty: bool,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, JsonSchema)]
@@ -60,15 +66,17 @@ pub struct Collection {
 
 impl Collection {
 	pub fn list(&self) -> Vec<String> {
+		tracing::debug!("Listing {} embeddings", self.embeddings.len());
 		self.embeddings.iter().map(|e| e.id.clone()).collect()
 	}
 
 	pub fn get(&self, id: &str) -> Option<&Embedding> {
+		tracing::debug!("Getting embedding {}", id);
 		self.embeddings.iter().find(|e| e.id == id)
 	}
 
 	pub fn get_by_metadata(&self, filter: &[HashMap<String, String>], k: usize) -> Vec<Embedding> {
-		self.embeddings
+		let embeddings: Vec<Embedding> = self.embeddings
 			.iter()
 			.filter_map(|embedding| {
 				if match_embedding(embedding, filter) {
@@ -78,7 +86,9 @@ impl Collection {
 				}
 			})
 			.take(k)
-			.collect()
+			.collect();
+		tracing::debug!("Found {} embeddings", embeddings.len());
+		embeddings
 	}
 
 	pub fn get_by_metadata_and_similarity(
@@ -115,6 +125,7 @@ impl Collection {
 			}
 		}
 
+		tracing::debug!("Found {} embeddings", heap.len());
 		heap.into_sorted_vec()
 			.into_iter()
 			.map(|ScoreIndex { score, index }| SimilarityResult {
@@ -130,16 +141,19 @@ impl Collection {
 		match index_opt {
 			None => false,
 			Some(index) => {
+				tracing::debug!("Deleting embedding {}", id);
 				self.embeddings.remove(index);
 				true
 			},
 		}
 	}
 
-	pub fn delete_by_metadata(&mut self, filter: &[HashMap<String, String>]) {
+	pub fn delete_by_metadata(&mut self, filter: &[HashMap<String, String>]) -> bool {
 		if filter.is_empty() {
+			let len = self.embeddings.len();
 			self.embeddings.clear();
-			return;
+			tracing::debug!("Deleted {} embeddings", len);
+			return len > 0;
 		}
 
 		let indexes = self
@@ -148,16 +162,21 @@ impl Collection {
 			.enumerate()
 			.filter_map(|(index, embedding)| {
 				if match_embedding(embedding, filter) {
+					tracing::debug!("Deleting embedding {}", embedding.id);
 					Some(index)
 				} else {
 					None
 				}
 			})
 			.collect::<Vec<_>>();
+		let len = indexes.len();
 
 		for index in indexes {
 			self.embeddings.remove(index);
 		}
+
+		tracing::debug!("Deleted {} embeddings", len);
+		len > 0
 	}
 }
 
@@ -208,11 +227,8 @@ impl Db {
 	pub fn new() -> Self {
 		Self {
 			collections: HashMap::new(),
+			dirty: false,
 		}
-	}
-
-	pub fn extension(self) -> DbExtension {
-		Extension(Arc::new(RwLock::new(self)))
 	}
 
 	pub fn create_collection(
@@ -234,6 +250,7 @@ impl Db {
 		};
 
 		self.collections.insert(name, collection.clone());
+		self.set_dirty();
 
 		Ok(collection)
 	}
@@ -246,6 +263,7 @@ impl Db {
 		}
 
 		self.collections.remove(name);
+		self.set_dirty();
 
 		Ok(())
 	}
@@ -273,20 +291,25 @@ impl Db {
 			embedding.vector = normalize(&embedding.vector);
 		}
 
+		tracing::debug!("Inserting embedding {} to collection {}", embedding.id, collection_name);
 		collection.embeddings.push(embedding);
+		self.set_dirty();
 
 		Ok(())
 	}
 
 	pub fn get_collection(&self, name: &str) -> Option<&Collection> {
+		tracing::debug!("Getting collection {}", name);
 		self.collections.get(name)
 	}
 
 	pub fn get_collection_mut(&mut self, name: &str) -> Option<&mut Collection> {
+		tracing::debug!("Getting collection {}", name);
 		self.collections.get_mut(name)
 	}
 
 	pub fn list(&self) -> Vec<String> {
+		tracing::debug!("Listing {} collections", self.collections.len());
 		self.collections.keys().map(ToOwned::to_owned).collect()
 	}
 
@@ -303,10 +326,20 @@ impl Db {
 		Ok(bincode::deserialize(&db[..])?)
 	}
 
-	fn save_to_store(&self) -> anyhow::Result<()> {
+	pub fn is_dirty(&self) -> bool {
+		self.dirty
+	}
+
+	pub fn set_dirty(&mut self) {
+		self.dirty = true;
+	}
+
+	pub fn save_to_store(&mut self) -> anyhow::Result<()> {
+		tracing::debug!("Saving database to store");
 		let db = bincode::serialize(self)?;
 
 		fs::write(STORE_PATH.as_path(), db)?;
+		self.dirty = false;
 
 		Ok(())
 	}
@@ -314,11 +347,31 @@ impl Db {
 
 impl Drop for Db {
 	fn drop(&mut self) {
-		tracing::debug!("Saving database to store");
-		self.save_to_store().ok();
+		if self.is_dirty() {
+			self.save_to_store().ok();
+		}
 	}
 }
 
-pub fn from_store() -> anyhow::Result<Db> {
-	Db::load_from_store()
+pub fn from_store() -> anyhow::Result<Arc<RwLock<Db>>> {
+	Ok(Arc::new(RwLock::new(Db::load_from_store()?)))
+}
+
+pub fn autosave(db: Arc<RwLock<Db>>, duration: u32) {
+	let mut interval = time::interval(Duration::from_secs(duration.into()));
+	tokio::spawn(async move {
+		loop {
+			interval.tick().await;
+			let dbr = db.read().await;
+			let dirty = dbr.is_dirty();
+			drop(dbr);
+			if dirty {
+				let mut dbw = db.write().await;
+				if dbw.is_dirty() {
+					dbw.save_to_store().ok();
+				}
+				drop(dbw);
+			}
+		}
+	});
 }
