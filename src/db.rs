@@ -151,8 +151,8 @@ impl Collection {
 	pub fn delete_by_metadata(&mut self, filter: &[HashMap<String, String>]) -> bool {
 		if filter.is_empty() {
 			let len = self.embeddings.len();
+			tracing::debug!("Deleting {} embeddings", len);
 			self.embeddings.clear();
-			tracing::debug!("Deleted {} embeddings", len);
 			return len > 0;
 		}
 
