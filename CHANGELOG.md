@@ -1,5 +1,12 @@
 # Changes
 
+## [0.3.0](https://github.com/prantlf/litevec/compare/v0.2.0...v0.3.0) (2024-01-01)
+
+### Features
+
+* Ensure the database saved every 10 seconds ([99b66c0](https://github.com/prantlf/litevec/commit/99b66c03d43bd86908f7d836e41030032eb49472))
+* Enable debug logging by default ([d329e19](https://github.com/prantlf/litevec/commit/d329e190f48dfead1ec254097bb280597dd778be))
+
 ## [0.2.0](https://github.com/prantlf/litevec/compare/v0.1.0...v0.2.0) (2023-12-31)
 
 ### Features
