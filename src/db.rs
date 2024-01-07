@@ -136,6 +136,19 @@ impl Collection {
 			.collect()
 	}
 
+	pub fn update_metadata(&mut self, id: &str, metadata: Option<HashMap<String, String>>) -> bool {
+		tracing::debug!("Updating embedding {}", id);
+		let embedding = self.embeddings.iter_mut().find(|e| e.id == id);
+
+		match embedding {
+			None => false,
+			Some(embedding) => {
+				embedding.metadata = metadata;
+				true
+			},
+		}
+	}
+
 	pub fn delete(&mut self, id: &str) -> bool {
 		let index_opt = self.embeddings.iter().position(|e| e.id == id);
 

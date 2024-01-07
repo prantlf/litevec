@@ -32,6 +32,10 @@ pub fn handler() -> ApiRouter {
 			)
 			.api_route(
 				"/:collection_name/embeddings/:embedding_id",
+				patch(update_embedding),
+			)
+			.api_route(
+				"/:collection_name/embeddings/:embedding_id",
 				get(get_embedding),
 			)
 			.api_route(
@@ -305,6 +309,32 @@ async fn delete_embeddings(
 	drop(db);
 
 	Ok(StatusCode::NO_CONTENT)
+}
+
+#[derive(Debug, serde::Deserialize, JsonSchema)]
+struct EmbeddingsUpdate {
+	/// Metadata to update
+	metadata: Option<HashMap<String, String>>,
+}
+
+/// Update metadata in an embedding
+#[allow(clippy::significant_drop_tightening)]
+async fn update_embedding(
+	Path((collection_name, embedding_id)): Path<(String, String)>,
+	Extension(db): DbExtension,
+	Json(req): Json<EmbeddingsUpdate>,
+) -> Result<StatusCode, HTTPError> {
+	let mut db = db.write().await;
+	let collection = db
+		.get_collection_mut(&collection_name)
+		.ok_or_else(|| HTTPError::new("Collection not found").with_status(StatusCode::NOT_FOUND))?;
+
+	if collection.update_metadata(&embedding_id, req.metadata) {
+		db.set_dirty();
+		Ok(StatusCode::NO_CONTENT)
+	} else {
+		Err(HTTPError::new("Embedding not found").with_status(StatusCode::NOT_FOUND))
+	}
 }
 
 /// Get an embedding from a collection

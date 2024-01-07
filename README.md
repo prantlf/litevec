@@ -101,6 +101,7 @@ Endpoints for embeddings:
 | POST   | /collections/:collection_name/embeddings               | filter embeddings with metadata    |
 | DELETE | /collections/:collection_name/embeddings               | delete embeddings by metadata      |
 | PUT    | /collections/:collection_name/embeddings/:embedding_id | create an embedding                |
+| PATCH  | /collections/:collection_name/embeddings/:embedding_id | update an embedding                |
 | GET    | /collections/:collection_name/embeddings/:embedding_id | get information about an embedding |
 | DELETE | /collections/:collection_name/embeddings/:embedding_id | delete an embedding                |
 

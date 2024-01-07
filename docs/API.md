@@ -213,6 +213,15 @@ Example:
 |:-------|:-------------------------------------------------------|:--------------------|
 | PUT    | /collections/:collection_name/embeddings/:embedding_id | create an embedding |
 
+```ts
+interface EmbeddingInput {
+  /// Vector computed from a text chunk
+  vector: float[]
+  /// Metadata about the source text
+  metadata?: Record<String, String>
+}
+```
+
 Example:
 
     curl -X PUT -s -w "%{http_code}" http://localhost:8000/collections/dnd/embeddings/classes%2Fbarbarian-0-0 \
@@ -221,6 +230,25 @@ Example:
     -H "Content-Type: application/json"
 
     201
+
+| Method | Path                                                   | Description         |
+|:-------|:-------------------------------------------------------|:--------------------|
+| PATCH  | /collections/:collection_name/embeddings/:embedding_id | update an embedding |
+
+```ts
+interface EmbeddingUpdate {
+  /// Metadata about the source text
+  metadata?: Record<String, String>
+}
+```
+
+Example:
+
+    curl -X PATCH -s -w "%{http_code}" http://localhost:8000/collections/dnd/embeddings/classes%2Fbarbarian-0-0 \
+    -d '{ "metadata": { "parnum": "0", "title": "Barbarian", "name": "classes/barbarian", "page": "0" } }' \
+    -H "Content-Type: application/json"
+
+    204
 
 | Method | Path                                                   | Description                        |
 |:-------|:-------------------------------------------------------|:-----------------------------------|
