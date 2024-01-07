@@ -108,7 +108,7 @@ Endpoints for embeddings:
 ## License
 
 Copyright (c) 2023 Miguel Piedrafita<br>
-Copyright (c) 2023 Ferdinand Prantl
+Copyright (c) 2023-2024 Ferdinand Prantl
 
 Licensed under the MIT license.
 
