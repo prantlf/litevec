@@ -256,6 +256,21 @@ impl Db {
 		Ok(collection)
 	}
 
+	pub fn rename_collection(&mut self, name: &str, new_name: String) -> Result<(), Error> {
+		tracing::debug!("Renaming collection {name} to {new_name}");
+
+		if self.collections.contains_key(&new_name) {
+			return Err(Error::UniqueViolation);
+		}
+
+		let collection = self.collections.remove(name).ok_or(Error::NotFound)?;
+
+		self.collections.insert(new_name, collection);
+		self.set_dirty();
+
+		Ok(())
+	}
+
 	pub fn delete_collection(&mut self, name: &str) -> Result<(), Error> {
 		tracing::debug!("Deleting collection {name}");
 

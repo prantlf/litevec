@@ -89,6 +89,7 @@ Endpoints for embedding collections and similarity search:
 | GET    | /collections                  | list collection names                                                       |
 | POST   | /collections/:collection_name | search the collection for similar vectors while filtering with metadata too |
 | PUT    | /collections/:collection_name | create a collection                                                         |
+| PATCH  | /collections/:collection_name | rename a collection                                                         |
 | GET    | /collections/:collection_name | get information about a collection                                          |
 | DELETE | /collections/:collection_name | delete a collection                                                         |
 

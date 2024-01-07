@@ -104,6 +104,26 @@ Example:
 
     201
 
+
+| Method | Path                          | Description         |
+|:-------|:------------------------------|:--------------------|
+| PATCH  | /collections/:collection_name | rename a collection |
+
+```ts
+interface CollectionUpdate {
+	/// New name
+	name: string
+}
+```
+
+Example:
+
+    curl -X PATCH -s -w "%{http_code}" http://localhost:8000/collections/dnd \
+      -d '{ "name": "dnd-mistral" }' \
+      -H "Content-Type: application/json"
+
+    204
+
 | Method | Path                          | Description                        |
 |:-------|:------------------------------|:-----------------------------------|
 | GET    | /collections/:collection_name | get information about a collection |

@@ -1,5 +1,5 @@
 use aide::axum::{
-	routing::{delete, get, post, put},
+	routing::{delete, get, patch, post, put},
 	ApiRouter,
 };
 use axum::{extract::Path, http::StatusCode, Extension};
@@ -19,6 +19,7 @@ pub fn handler() -> ApiRouter {
 		ApiRouter::new()
 			.api_route("/", get(get_collections))
 			.api_route("/:collection_name", put(create_collection))
+			.api_route("/:collection_name", patch(rename_collection))
 			.api_route("/:collection_name", post(query_collection))
 			.api_route("/:collection_name", get(get_collection_info))
 			.api_route("/:collection_name", delete(delete_collection))
@@ -76,6 +77,36 @@ async fn create_collection(
 			Err(HTTPError::new("Collection already exists").with_status(StatusCode::CONFLICT))
 		},
 		Err(_) => Err(HTTPError::new("Couldn't create collection")),
+	}
+}
+
+#[allow(clippy::module_name_repetitions)]
+#[derive(Debug, serde::Deserialize, JsonSchema)]
+pub struct CollectionUpdate {
+	/// New name
+	pub name: String,
+}
+
+/// Rename an existing collection
+async fn rename_collection(
+	Path(collection_name): Path<String>,
+	Extension(db): DbExtension,
+	Json(req): Json<CollectionUpdate>,
+) -> Result<StatusCode, HTTPError> {
+	let mut db = db.write().await;
+
+	let create_result = db.rename_collection(&collection_name, req.name);
+	drop(db);
+
+	match create_result {
+		Ok(()) => Ok(StatusCode::NO_CONTENT),
+		Err(DbError::NotFound) => {
+			Err(HTTPError::new("Collection not found").with_status(StatusCode::NOT_FOUND))
+		},
+		Err(db::Error::UniqueViolation) => {
+			Err(HTTPError::new("Collection already exists").with_status(StatusCode::CONFLICT))
+		},
+		Err(_) => Err(HTTPError::new("Couldn't rename collection")),
 	}
 }
 
