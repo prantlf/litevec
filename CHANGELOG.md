@@ -1,5 +1,16 @@
 # Changes
 
+## [0.4.0](https://github.com/prantlf/litevec/compare/v0.3.0...v0.4.0) (2024-01-07)
+
+### Features
+
+* Support renaming of a collection ([d4fda4b](https://github.com/prantlf/litevec/commit/d4fda4b9db02546cba4fd1b2cc09fb38d8a73eef))
+* Support updating metadata of an embedding ([19b39d5](https://github.com/prantlf/litevec/commit/19b39d5cc24399678829b04059e42ec098037a6d))
+
+### Bug Fixes
+
+* Upgrade dependencies ([f1c8250](https://github.com/prantlf/litevec/commit/f1c82509cb028eee286c7fdfc1315d8747ce8264))
+
 ## [0.3.0](https://github.com/prantlf/litevec/compare/v0.2.0...v0.3.0) (2024-01-01)
 
 ### Features
