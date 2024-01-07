@@ -15,7 +15,7 @@ This is a fork of [tinyvector] with the following goals:
 * Focus only on embeddings. Do not integrate LLMs to split and vectorise text.
 * Support CORS and other network features.
 
-There's a [demo example] included.
+There's a [demo example] included. This dabase is integrated in the lightweight AI RAG solution [literag].
 
 ## Getting Started
 
@@ -114,6 +114,7 @@ Licensed under the MIT license.
 
 [embeddings at OpenAI]: https://platform.openai.com/docs/guides/embeddings/what-are-embeddings
 [tinyvector]: https://github.com/m1guelpf/tinyvector
+[literag]: https://github.com/prantlf/literag
 [demo example]: ./docs/DEMO.md
 [Rust]: https://rustup.rs
 [docker-compose.yml]: ./docker-compose.yml
