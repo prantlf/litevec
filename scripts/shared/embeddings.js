@@ -1,4 +1,4 @@
-import { postJson, postJsonToJson } from './safe-fetch.js'
+import { putJsonToJson, postJsonToJson } from './safe-fetch.js'
 import settings from './settings.json' assert { type: 'json' }
 const { vectorDbUrl, collection, k, llmUrl, model } = settings
 
@@ -12,11 +12,11 @@ export async function vectorise(prompt) {
 
 export async function index(title, name, chapter, page, partext, parnum, vector) {
   const start = performance.now()
-  const id = `${name}-${page}-${parnum}`
+  const id = `${name}-${parnum}`
   page = String(page)
   parnum = String(parnum)
-  await postJson(`${vectorDbUrl}/collections/${collection}/insert`, {
-    id, metadata: { title, name, chapter, page, partext, parnum }, vector
+  await putJsonToJson(`${vectorDbUrl}/collections/${collection}/embeddings/${encodeURIComponent(id)}`, {
+    metadata: { title, name, chapter, page, partext, parnum }, vector
   })
   const duration = Math.trunc(performance.now() - start)
   console.log(`${id} indexed (in ${duration}ms)`)
