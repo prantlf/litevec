@@ -45,6 +45,11 @@ Example:
 | POST   | /collections/:collection_name | search the collection for similar vectors while filtering with metadata too |
 
 ```ts
+interface EmbeddingParams {
+  /// Omits the vector from the embedding data in the response
+  novector: Option<bool>
+}
+
 interface SearchInput {
   /// Vector to query with
   query: float[]
@@ -83,6 +88,8 @@ Example:
       { "id": "classes/barbarian-0-4", "vector": [ 0.01261057, 0.003335859, ..., 0.0024617626,-0.0025066733 ],
         "metadata": { "parnum": "4", "title": "Barbarian", "name": "classes/barbarian", "page": "0" } } ]
 
+The URL parameter `?novector=true` will omit the vectors from the response. Vectors are usually used for querying the embeddings, but they are usually not needed once the embedding has been found and its metadata obtained.
+
 | Method | Path                          | Description         |
 |:-------|:------------------------------|:--------------------|
 | PUT    | /collections/:collection_name | create a collection |
@@ -111,8 +118,8 @@ Example:
 
 ```ts
 interface CollectionUpdate {
-	/// New name
-	name: string
+  /// New name
+  name: string
 }
 ```
 
@@ -254,7 +261,13 @@ Example:
 |:-------|:-------------------------------------------------------|:-----------------------------------|
 | GET    | /collections/:collection_name/embeddings/:embedding_id | get information about an embedding |
 
+
 ```ts
+interface EmbeddingParams {
+  /// Omits the vector from the embedding data in the response
+  novector: Option<bool>
+}
+
 interface EmbeddingOutput {
   /// Unique identifier
   id: string
@@ -271,6 +284,8 @@ Example:
 
     { "id": "classes/barbarian-0-0", "vector": [ 0.0033867622, 0.008273851, ..., 0.017800305, -0.01118711 ],
       "metadata": { "parnum": "0", "title": "Barbarian", "name": "classes/barbarian", "page": "0" } }
+
+The URL parameter `?novector=true` will omit the vector from the response. Vectors are usually used for querying the embeddings, but they are usually not needed once the embedding has been found and its metadata obtained.
 
 | Method | Path                                                   | Description         |
 |:-------|:-------------------------------------------------------|:--------------------|

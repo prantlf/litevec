@@ -75,13 +75,24 @@ impl Collection {
 		self.embeddings.iter().find(|e| e.id == id)
 	}
 
-	pub fn get_by_metadata(&self, filter: &[HashMap<String, String>], k: usize) -> Vec<Embedding> {
+	pub fn get_by_metadata(
+		&self,
+		filter: &[HashMap<String, String>],
+		k: usize,
+		novector: bool,
+	) -> Vec<Embedding> {
 		let embeddings: Vec<Embedding> = self
 			.embeddings
 			.iter()
 			.filter_map(|embedding| {
 				if match_embedding(embedding, filter) {
-					Some(embedding.clone())
+					if novector {
+						let mut clone = embedding.clone();
+						clone.vector.clear();
+						Some(clone)
+					} else {
+						Some(embedding.to_owned())
+					}
 				} else {
 					None
 				}

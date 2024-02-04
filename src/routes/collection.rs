@@ -2,7 +2,11 @@ use aide::axum::{
 	routing::{delete, get, patch, post, put},
 	ApiRouter,
 };
-use axum::{extract::Path, http::StatusCode, Extension};
+use axum::{
+	extract::{Path, Query},
+	http::StatusCode,
+	Extension,
+};
 use axum_jsonschema::Json;
 use schemars::JsonSchema;
 use std::{collections::HashMap, time::Instant};
@@ -68,11 +72,11 @@ pub struct CollectionData {
 async fn create_collection(
 	Path(collection_name): Path<String>,
 	Extension(db): DbExtension,
-	Json(req): Json<CollectionData>,
+	Json(body): Json<CollectionData>,
 ) -> Result<StatusCode, HTTPError> {
 	let mut db = db.write().await;
 
-	let create_result = db.create_collection(collection_name, req.dimension, req.distance);
+	let create_result = db.create_collection(collection_name, body.dimension, body.distance);
 	drop(db);
 
 	match create_result {
@@ -95,11 +99,11 @@ pub struct CollectionUpdate {
 async fn rename_collection(
 	Path(collection_name): Path<String>,
 	Extension(db): DbExtension,
-	Json(req): Json<CollectionUpdate>,
+	Json(body): Json<CollectionUpdate>,
 ) -> Result<StatusCode, HTTPError> {
 	let mut db = db.write().await;
 
-	let create_result = db.rename_collection(&collection_name, req.name);
+	let create_result = db.rename_collection(&collection_name, body.name);
 	drop(db);
 
 	match create_result {
@@ -128,22 +132,22 @@ struct QueryCollectionQuery {
 async fn query_collection(
 	Path(collection_name): Path<String>,
 	Extension(db): DbExtension,
-	Json(req): Json<QueryCollectionQuery>,
+	Json(body): Json<QueryCollectionQuery>,
 ) -> Result<Json<Vec<SimilarityResult>>, HTTPError> {
 	let db = db.read().await;
 	let collection = db
 		.get_collection(&collection_name)
 		.ok_or_else(|| HTTPError::new("Collection not found").with_status(StatusCode::NOT_FOUND))?;
 
-	if req.query.len() != collection.dimension {
+	if body.query.len() != collection.dimension {
 		return Err(HTTPError::new("Query dimension mismatch").with_status(StatusCode::BAD_REQUEST));
 	}
 
 	let instant = Instant::now();
 	let results = collection.get_by_metadata_and_similarity(
-		&req.filter.unwrap_or_default(),
-		&req.query,
-		req.k.unwrap_or(1),
+		&body.filter.unwrap_or_default(),
+		&body.query,
+		body.k.unwrap_or(1),
 	);
 	drop(db);
 
@@ -257,6 +261,12 @@ async fn get_embeddings(
 }
 
 #[derive(Debug, serde::Deserialize, JsonSchema)]
+struct EmbeddingParams {
+	/// Omits the vector from the embedding data in the response
+	novector: Option<bool>,
+}
+
+#[derive(Debug, serde::Deserialize, JsonSchema)]
 struct EmbeddingsQuery {
 	/// Metadata to filter with
 	filter: Vec<HashMap<String, String>>,
@@ -267,8 +277,9 @@ struct EmbeddingsQuery {
 /// Query embeddings in a collection
 async fn query_embeddings(
 	Path(collection_name): Path<String>,
+	Query(params): Query<EmbeddingParams>,
 	Extension(db): DbExtension,
-	Json(req): Json<EmbeddingsQuery>,
+	Json(body): Json<EmbeddingsQuery>,
 ) -> Result<Json<Vec<Embedding>>, HTTPError> {
 	let db = db.read().await;
 	let collection = db
@@ -276,7 +287,11 @@ async fn query_embeddings(
 		.ok_or_else(|| HTTPError::new("Collection not found").with_status(StatusCode::NOT_FOUND))?;
 
 	let instant = Instant::now();
-	let results = collection.get_by_metadata(&req.filter, req.k.unwrap_or(1));
+	let results = collection.get_by_metadata(
+		&body.filter,
+		body.k.unwrap_or(1),
+		params.novector.unwrap_or_default(),
+	);
 	drop(db);
 
 	tracing::trace!(
@@ -296,14 +311,14 @@ struct EmbeddingsDeleteQuery {
 async fn delete_embeddings(
 	Path(collection_name): Path<String>,
 	Extension(db): DbExtension,
-	Json(req): Json<EmbeddingsDeleteQuery>,
+	Json(body): Json<EmbeddingsDeleteQuery>,
 ) -> Result<StatusCode, HTTPError> {
 	let mut db = db.write().await;
 	let collection = db
 		.get_collection_mut(&collection_name)
 		.ok_or_else(|| HTTPError::new("Collection not found").with_status(StatusCode::NOT_FOUND))?;
 
-	if collection.delete_by_metadata(&req.filter) {
+	if collection.delete_by_metadata(&body.filter) {
 		db.set_dirty();
 	}
 	drop(db);
@@ -322,14 +337,14 @@ struct EmbeddingsUpdate {
 async fn update_embedding(
 	Path((collection_name, embedding_id)): Path<(String, String)>,
 	Extension(db): DbExtension,
-	Json(req): Json<EmbeddingsUpdate>,
+	Json(body): Json<EmbeddingsUpdate>,
 ) -> Result<StatusCode, HTTPError> {
 	let mut db = db.write().await;
 	let collection = db
 		.get_collection_mut(&collection_name)
 		.ok_or_else(|| HTTPError::new("Collection not found").with_status(StatusCode::NOT_FOUND))?;
 
-	if collection.update_metadata(&embedding_id, req.metadata) {
+	if collection.update_metadata(&embedding_id, body.metadata) {
 		db.set_dirty();
 		Ok(StatusCode::NO_CONTENT)
 	} else {
@@ -341,6 +356,7 @@ async fn update_embedding(
 #[allow(clippy::significant_drop_tightening)]
 async fn get_embedding(
 	Path((collection_name, embedding_id)): Path<(String, String)>,
+	Query(params): Query<EmbeddingParams>,
 	Extension(db): DbExtension,
 ) -> Result<Json<Embedding>, HTTPError> {
 	let db = db.read().await;
@@ -352,7 +368,13 @@ async fn get_embedding(
 		.get(&embedding_id)
 		.ok_or_else(|| HTTPError::new("Embedding not found").with_status(StatusCode::NOT_FOUND))?;
 
-	Ok(Json(embedding.to_owned()))
+	if params.novector.unwrap_or_default() {
+		let mut clone = embedding.clone();
+		clone.vector.clear();
+		Ok(Json(clone))
+	} else {
+		Ok(Json(embedding.to_owned()))
+	}
 }
 
 /// Delete an embedding from a collection
