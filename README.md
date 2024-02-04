@@ -57,7 +57,7 @@ Runtime parameters of the service can be customised using the process environmen
 | LITEVEC_COMPRESSION_LIMIT | 1024       | minimum response size to get compressed [b] |
 | LITEVEC_CORS_MAXAGE       | 86400      | how long stays CORS preflighting valid [s]  |
 | LITEVEC_HOST              | 0.0.0.0    | IP address to bind the server to            |
-| LITEVEC_PORT              | 8000       | port address to bind the server to          |
+| LITEVEC_PORT              | 8000       | port number to bind the server to           |
 | LITEVEC_PAYLOAD_LIMIT     | 1073741824 | maximum size of request payload [b]         |
 | LITEVEC_TIMEOUT           | 30         | maximum duration of a request [s]           |
 | RUST_LOG                  | info       | log level (`info`, `debug`, `trace`)        |

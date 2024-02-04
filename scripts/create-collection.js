@@ -1,5 +1,4 @@
 import { putJsonToJson } from './shared/safe-fetch.js'
-import settings from './shared/settings.json' assert { type: 'json' }
-const { vectorDbUrl, collection, dimension, distance } = settings
+import { vectorDbUrl, collection, dimension, distance } from './shared/settings.js'
 
 await putJsonToJson(`${vectorDbUrl}/collections/${collection}`, { dimension, distance })

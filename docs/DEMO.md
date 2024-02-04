@@ -118,7 +118,7 @@ Then the search can be conducted:
 
 ## Other Scripts
 
-Remaining [scripts] demonstrate other use cases for the REST API. They have no parameters. They work with the embedding collection `dnd` and the LLM model `mistral`. The common configuration is in [scripts/shared/settings.json].
+Remaining [scripts] demonstrate other use cases for the REST API. They have no parameters. They work with the embedding collection `dnd` and the LLM model `mistral`. The common configuration is in [scripts/shared/settings.js].
 
 | Path                 | Description                                            |
 |:---------------------|:-------------------------------------------------------|
@@ -135,6 +135,20 @@ Remaining [scripts] demonstrate other use cases for the REST API. They have no p
 | shared/safe-fetch.js | wrappers for network requests                          |
 | shared/settings/json | common parameters for all scripts                      |
 
+### Configuration
+
+The scripts recognise the following environment variables:
+
+| Name               | Default                    | Description                                                            |
+|:-------------------|:---------------------------|:-----------------------------------------------------------------------|
+| LITEVEC_URL        | http://127.0.0.1:8000      | base URL of the vector database service                                |
+| LITEVEC_COLLECTION | dnd-phi                    | name of the collection to work with                                    |
+| LITEVEC_DIMENSION  | 2560                       | dimension of the collection (phi: 2560, mini-orca: 3200, mistral 4096) |
+| LITEVEC_DISTANCE   | cosine                     | algorithm for computing the vector distance (cosine, dot or euclidean) |
+| LITEVEC_K          | 10                         | maximum number of embeddings returned by the similarity search         |
+| LITEVEC_LLM_URL    | http://127.0.0.1:11434/api | base URL of the LLM service                                            |
+| LITEVEC_LLM_MODEL  | phi                        | name of the LLM model (phi, mini-orca, mistral)                        |
+
 [Dungeons and Dragons]: https://www.dndbeyond.com
 [data/classes]: ../data/classes
 [data/guilds]: ../data/guilds
@@ -142,4 +156,4 @@ Remaining [scripts] demonstrate other use cases for the REST API. They have no p
 [Node.js]: https://nodejs.org
 [Bun]: https://bun.sh
 [ollama]: https://ollama.ai
-[scripts/shared/settings.json]: ../scripts/shared/settings.json
+[scripts/shared/settings.js]: ../scripts/shared/settings.js

@@ -1,6 +1,5 @@
 import { putJsonToJson, postJsonToJson } from './safe-fetch.js'
-import settings from './settings.json' assert { type: 'json' }
-const { vectorDbUrl, collection, k, llmUrl, model } = settings
+import { vectorDbUrl, collection, k, llmUrl, model } from './settings.js'
 
 export async function vectorise(prompt) {
   const start = performance.now()

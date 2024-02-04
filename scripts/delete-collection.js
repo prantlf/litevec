@@ -1,5 +1,4 @@
 import { drop } from './shared/safe-fetch.js'
-import settings from './shared/settings.json' assert { type: 'json' }
-const { vectorDbUrl, collection } = settings
+import { vectorDbUrl, collection } from './shared/settings.js'
 
 await drop(`${vectorDbUrl}/collections/${collection}`)
