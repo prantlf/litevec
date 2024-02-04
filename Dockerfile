@@ -17,7 +17,7 @@ RUN apt-get update -y && \
     apt-get install -y --no-install-recommends libssl3 && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /litevec
-COPY --from=builder /litevec/target/release/litevec /usr/local/bin
+COPY --from=builder /litevec/target/release/litevec /usr/local/bin/
 
 EXPOSE 8000
 VOLUME ["/storage"]
