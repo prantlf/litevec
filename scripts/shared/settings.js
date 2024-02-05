@@ -15,7 +15,7 @@ const port = +(LITEVEC_PORT || 8000)
 
 const vectorDbUrl = LITEVEC_URL || `http://${host}:${port}`
 const collection = LITEVEC_COLLECTION || 'dnd-phi'
-// phi: 2560, mini-orca: 3200, mistral 4096
+// phi: 2560, orca-mini: 3200, mistral 4096
 const dimension = +(LITEVEC_DIMENSION || 2560)
 // cosine, dot, euclidean
 const distance = LITEVEC_DISTANCE || 'cosine'

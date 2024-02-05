@@ -13,7 +13,7 @@ A collection is needed to be able to index and search through any content. The v
 
 | Model     | Parameters | Dimension |
 |:----------|:-----------|:----------|
-| phis      | 2.7B       | 2560      |
+| phi       | 2.7B       | 2560      |
 | orca-mini | 3B         | 3200      |
 | mistral   | 7B         | 4096      |
 
@@ -143,11 +143,23 @@ The scripts recognise the following environment variables:
 |:-------------------|:---------------------------|:-----------------------------------------------------------------------|
 | LITEVEC_URL        | http://127.0.0.1:8000      | base URL of the vector database service                                |
 | LITEVEC_COLLECTION | dnd-phi                    | name of the collection to work with                                    |
-| LITEVEC_DIMENSION  | 2560                       | dimension of the collection (phi: 2560, mini-orca: 3200, mistral 4096) |
+| LITEVEC_DIMENSION  | 2560                       | dimension of the collection (phi: 2560, orca-mini: 3200, mistral 4096) |
 | LITEVEC_DISTANCE   | cosine                     | algorithm for computing the vector distance (cosine, dot or euclidean) |
 | LITEVEC_K          | 10                         | maximum number of embeddings returned by the similarity search         |
 | LITEVEC_LLM_URL    | http://127.0.0.1:11434/api | base URL of the LLM service                                            |
-| LITEVEC_LLM_MODEL  | phi                        | name of the LLM model (phi, mini-orca, mistral)                        |
+| LITEVEC_LLM_MODEL  | phi                        | name of the LLM model (phi, orca-mini, mistral)                        |
+
+For example, use different models:
+
+    # phi
+    node scripts/create-collection.js
+    node scripts/index-documents.js
+    # orca-mini
+    LITEVEC_COLLECTION=dnd-orca-mini LITEVEC_DIMENSION=3200 node scripts/create-collection.js
+    LITEVEC_COLLECTION=dnd-orca-mini LITEVEC_LLM_MODEL=orca-mini node scripts/index-documents.js
+    # mistral
+    LITEVEC_COLLECTION=dnd-mistral LITEVEC_DIMENSION=3200 node scripts/create-collection.js
+    LITEVEC_COLLECTION=dnd-mistral LITEVEC_LLM_MODEL=mistral node scripts/index-documents.js
 
 [Dungeons and Dragons]: https://www.dndbeyond.com
 [data/classes]: ../data/classes
