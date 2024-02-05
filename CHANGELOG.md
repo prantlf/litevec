@@ -1,5 +1,15 @@
 # Changes
 
+## [0.5.0](https://github.com/prantlf/litevec/compare/v0.4.0...v0.5.0) (2024-02-05)
+
+### Features
+
+* Add URL parameter novector ([f3cce2e](https://github.com/prantlf/litevec/commit/f3cce2e7009be7148450af43d38b0da254576ac7))
+
+### Bug Fixes
+
+* Upgrade dependencies ([d6c2a6c](https://github.com/prantlf/litevec/commit/d6c2a6c7001556981fb474318131104ae60c57c0))
+
 ## [0.4.0](https://github.com/prantlf/litevec/compare/v0.3.0...v0.4.0) (2024-01-07)
 
 ### Features
