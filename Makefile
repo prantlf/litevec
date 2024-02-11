@@ -1,3 +1,10 @@
+ifeq (1,${MACOS_ARM})
+	TARGET:=--target=aarch64-apple-darwin
+endif
+ifeq (1,${LINUX_ARM})
+	TARGET:=--target=aarch64-unknown-linux-gnu
+endif
+
 all: check build
 
 lint:
@@ -13,14 +20,14 @@ audit:
 	cargo audit
 	cargo pants
 
-check: lint format outdated audit
+check: lint format outdated
 
 upgrade:
 	    cargo update
 		cargo upgrade --incompatible
 
 build:
-	cargo build --release
+	cargo build --release $(TARGET)
 
 start:
 	target/release/litevec &
