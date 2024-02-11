@@ -39,4 +39,4 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
 
 [build-dependencies]
-chrono = "0.4.33"
+chrono = "0.4.34"
