@@ -44,7 +44,7 @@ jobs:
   macos:
     needs:
       - linux
-    runs-on: macos-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
@@ -120,7 +120,7 @@ jobs:
       - macos
       - windows
       - docker
-    runs-on: ubuntu-latest
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       - uses: prantlf/unshelve-changes-action@v1
