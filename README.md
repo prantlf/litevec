@@ -3,7 +3,7 @@
 A tiny vector database for storing and querying embeddings in pure Rust. Read the explanation of [embeddings at OpenAI].
 
 * Runs in memory for great speed.
-* Serialises embeddings to one binary file for simplicity.
+* Serialises embeddings to binary files per collection for speed and simplicity.
 * Little code for sustainable  maintenance.
 * Versatile REST API for various scenarios.
 * Easy to integrate to prototypes or small products.
