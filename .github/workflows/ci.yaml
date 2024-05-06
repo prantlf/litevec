@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - master
+    tags:
+      - 'v*'
     paths-ignore:
       - '**/*.md'
       - LICENSE
@@ -12,6 +14,7 @@ on:
 jobs:
 
   linux:
+    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
     runs-on: ubuntu-latest
     outputs:
       changed: ${{ steps.bump.outputs.bumped }}
@@ -32,6 +35,7 @@ jobs:
           path: target/release/litevec
 
   linux-arm:
+    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
     needs:
       - linux
     runs-on: ubuntu-latest
@@ -61,6 +65,7 @@ jobs:
           path: target/aarch64-unknown-linux-gnu/release/litevec
 
   macos:
+    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
     needs:
       - linux
     runs-on: macos-13
@@ -80,6 +85,7 @@ jobs:
           path: target/release/litevec
 
   macos-arm:
+    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
     needs:
       - linux
     runs-on: macos-13
@@ -101,6 +107,7 @@ jobs:
           path: target/aarch64-apple-darwin/release/litevec
 
   windows:
+    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
     needs:
       - linux
     runs-on: windows-latest
@@ -129,6 +136,7 @@ jobs:
           path: target/aarch64-pc-windows-msvc/release/litevec.exe
 
   windows-arm:
+    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
     needs:
       - linux
     runs-on: windows-latest
@@ -150,6 +158,7 @@ jobs:
           path: target/aarch64-pc-windows-msvc/release/litevec.exe
 
   docker:
+    if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
     needs:
       - linux
     runs-on: ubuntu-latest
@@ -166,7 +175,7 @@ jobs:
           push: false
 
   release:
-    if: ${{ github.ref_name == 'master' && needs.linux.outputs.changed == 'true' }}
+    if: ${{ !startsWith(github.ref, 'refs/tags/v') && github.ref_name == 'master' && needs.linux.outputs.changed == 'true' }}
     needs:
       - linux
       - linux-arm
@@ -193,3 +202,28 @@ jobs:
           debug: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker-publish:
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: |
+            ghcr.io/prantlf/litevec
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
