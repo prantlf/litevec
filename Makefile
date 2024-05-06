@@ -23,8 +23,8 @@ audit:
 check: lint format outdated
 
 upgrade:
-	    cargo update
-		cargo upgrade --incompatible
+	cargo update
+	cargo upgrade --incompatible
 
 build:
 	cargo build --release $(TARGET)

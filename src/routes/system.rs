@@ -25,7 +25,7 @@ pub struct AppVersion {
 pub struct RootResponse {
 	/// Relative URL to Swagger UI
 	pub docs_url: String,
-	/// Relative URL to OpenAPI specification
+	/// Relative URL to `OpenAPI` specification
 	pub openapi_url: String,
 	/// Application version
 	pub version: AppVersion,

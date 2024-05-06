@@ -319,7 +319,7 @@ async fn delete_embeddings(
 		.ok_or_else(|| HTTPError::new("Collection not found").with_status(StatusCode::NOT_FOUND))?;
 
 	if collection.delete_by_metadata(&body.filter) {
-		db.set_dirty();
+		collection.set_dirty();
 	}
 	drop(db);
 
@@ -345,7 +345,7 @@ async fn update_embedding(
 		.ok_or_else(|| HTTPError::new("Collection not found").with_status(StatusCode::NOT_FOUND))?;
 
 	if collection.update_metadata(&embedding_id, body.metadata) {
-		db.set_dirty();
+		collection.set_dirty();
 		Ok(StatusCode::NO_CONTENT)
 	} else {
 		Err(HTTPError::new("Embedding not found").with_status(StatusCode::NOT_FOUND))
@@ -391,7 +391,7 @@ async fn delete_embedding(
 	let delete_result = collection.delete(&embedding_id);
 
 	if delete_result {
-		db.set_dirty();
+		collection.set_dirty();
 		Ok(StatusCode::NO_CONTENT)
 	} else {
 		Err(HTTPError::new("Embedding not found").with_status(StatusCode::NOT_FOUND))

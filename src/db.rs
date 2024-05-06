@@ -1,4 +1,3 @@
-use anyhow::Context;
 use axum::Extension;
 use lazy_static::lazy_static;
 use rayon::prelude::*;
@@ -6,7 +5,7 @@ use schemars::JsonSchema;
 use std::{
 	borrow::ToOwned,
 	collections::{BinaryHeap, HashMap},
-	fs,
+	fs::{self, File},
 	path::PathBuf,
 	sync::Arc,
 };
@@ -14,11 +13,12 @@ use tokio::{
 	sync::RwLock,
 	time::{self, Duration},
 };
+use url_escape::{decode, encode_component};
 
 use crate::similarity::{get_cache_attr, get_distance_fn, normalize, Distance, ScoreIndex};
 
 lazy_static! {
-	pub static ref STORE_PATH: PathBuf = PathBuf::from("./storage/db");
+	pub static ref STORE_PATH: PathBuf = PathBuf::from("./storage");
 }
 
 #[allow(clippy::module_name_repetitions)]
@@ -40,9 +40,9 @@ pub enum Error {
 pub struct Db {
 	/// Collections in the database
 	pub collections: HashMap<String, Collection>,
-	/// If a collection was modified and hasn't been saved yet
+	/// List of deleted collection names since the last storing
 	#[serde(skip)]
-	dirty: bool,
+	deleted: Vec<String>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, JsonSchema)]
@@ -62,9 +62,24 @@ pub struct Collection {
 	/// Embeddings in the collection
 	#[serde(default)]
 	pub embeddings: Vec<Embedding>,
+	/// If the collection was modified and hasn't been saved yet
+	#[serde(skip)]
+	dirty: bool,
 }
 
 impl Collection {
+	pub const fn is_dirty(&self) -> bool {
+		self.dirty
+	}
+
+	pub fn set_dirty(&mut self) {
+		self.dirty = true;
+	}
+
+	pub fn unset_dirty(&mut self) {
+		self.dirty = false;
+	}
+
 	pub fn list(&self) -> Vec<String> {
 		tracing::debug!("Listing {} embeddings", self.embeddings.len());
 		self.embeddings.iter().map(|e| e.id.clone()).collect()
@@ -252,7 +267,7 @@ impl Db {
 	pub fn new() -> Self {
 		Self {
 			collections: HashMap::new(),
-			dirty: false,
+			deleted: Vec::<String>::new(),
 		}
 	}
 
@@ -272,10 +287,12 @@ impl Db {
 			dimension,
 			distance,
 			embeddings: Vec::new(),
+			dirty: true,
 		};
 
+		let name_for_remove = name.clone();
 		self.collections.insert(name, collection.clone());
-		self.set_dirty();
+		self.remove_deleted(&name_for_remove);
 
 		Ok(collection)
 	}
@@ -287,10 +304,13 @@ impl Db {
 			return Err(Error::UniqueViolation);
 		}
 
-		let collection = self.collections.remove(name).ok_or(Error::NotFound)?;
+		let mut collection = self.collections.remove(name).ok_or(Error::NotFound)?;
+		self.add_deleted(name);
 
+		collection.set_dirty();
+		let name_for_remove = new_name.clone();
 		self.collections.insert(new_name, collection);
-		self.set_dirty();
+		self.remove_deleted(&name_for_remove);
 
 		Ok(())
 	}
@@ -303,7 +323,7 @@ impl Db {
 		}
 
 		self.collections.remove(name);
-		self.set_dirty();
+		self.add_deleted(name);
 
 		Ok(())
 	}
@@ -337,7 +357,7 @@ impl Db {
 			collection_name
 		);
 		collection.embeddings.push(embedding);
-		self.set_dirty();
+		collection.set_dirty();
 
 		Ok(())
 	}
@@ -358,34 +378,102 @@ impl Db {
 	}
 
 	fn load_from_store() -> anyhow::Result<Self> {
-		if !STORE_PATH.exists() {
-			tracing::debug!("Creating database store");
-			fs::create_dir_all(STORE_PATH.parent().context("Invalid store path")?)?;
-
-			return Ok(Self::new());
+		let marker = STORE_PATH.join("._collections");
+		if STORE_PATH.exists() {
+			if marker.exists() {
+				let mut db = Self::new();
+				db.load_collections()?;
+				return Ok(db);
+			}
+			let db = Self::convert_old_store()?;
+			File::create(marker)?;
+			return Ok(db);
 		}
-
-		tracing::debug!("Loading database from store");
-		let db = fs::read(STORE_PATH.as_path())?;
-		Ok(bincode::deserialize(&db[..])?)
+		tracing::debug!("Creating database store");
+		fs::create_dir_all(STORE_PATH.as_path())?;
+		File::create(marker)?;
+		Ok(Self::new())
 	}
 
-	pub const fn is_dirty(&self) -> bool {
-		self.dirty
+	pub fn is_dirty(&self) -> bool {
+		return !self.deleted.is_empty() || self.collections.values().any(Collection::is_dirty);
 	}
 
-	pub fn set_dirty(&mut self) {
-		self.dirty = true;
+	pub fn add_deleted(&mut self, name: &str) {
+		self.deleted.push(name.to_string());
+	}
+
+	pub fn remove_deleted(&mut self, name: &String) -> bool {
+		let deleted_len = self.deleted.len();
+		let deleted_index = self
+			.deleted
+			.iter()
+			.position(|deleted_name| deleted_name == name)
+			.unwrap_or(deleted_len);
+		if deleted_index < deleted_len {
+			self.deleted.remove(deleted_index);
+			true
+		} else {
+			false
+		}
 	}
 
 	pub fn save_to_store(&mut self) -> anyhow::Result<()> {
-		tracing::debug!("Saving database to store");
-		let db = bincode::serialize(self)?;
+		self.delete_collections()?;
+		self.store_collections()
+	}
 
-		fs::write(STORE_PATH.as_path(), db)?;
-		self.dirty = false;
-
+	fn delete_collections(&mut self) -> anyhow::Result<()> {
+		for name in &self.deleted {
+			tracing::debug!("Deleting collection {} from store", name);
+			let file_name = encode_component(name).to_string();
+			fs::remove_file(STORE_PATH.join(file_name).as_path())?;
+		}
+		self.deleted.clear();
 		Ok(())
+	}
+
+	fn store_collections(&mut self) -> anyhow::Result<()> {
+		for (name, collection) in &mut self.collections {
+			if collection.is_dirty() {
+				tracing::debug!("Saving collection {} to store", name);
+				let binary = bincode::serialize(&collection)?;
+				let file_name = encode_component(name).to_string();
+				fs::write(STORE_PATH.join(file_name).as_path(), binary)?;
+				collection.unset_dirty();
+			}
+		}
+		Ok(())
+	}
+
+	fn load_collections(&mut self) -> anyhow::Result<()> {
+		for entry in fs::read_dir(STORE_PATH.as_path())? {
+			let entry = entry?;
+			let entry_name = entry.file_name();
+			if entry_name == "._collections" {
+				continue;
+			}
+			let file_name = entry_name.to_str().ok_or(Error::NotFound)?;
+			let collection_name = decode(file_name).to_string();
+			tracing::debug!("Loading collection {} from store", collection_name);
+			let binary = fs::read(entry.path())?;
+			let collection: Collection = bincode::deserialize(&binary[..])?;
+			self.collections.insert(collection_name, collection);
+		}
+		Ok(())
+	}
+
+	fn convert_old_store() -> anyhow::Result<Self> {
+		tracing::debug!("Converting old database store");
+		let db_path = STORE_PATH.join("db");
+		let binary = fs::read(db_path.clone())?;
+		let mut db: Self = bincode::deserialize(&binary[..])?;
+		for collection in &mut db.collections.values_mut() {
+			collection.set_dirty();
+		}
+		db.store_collections()?;
+		fs::remove_file(db_path)?;
+		Ok(db)
 	}
 }
 
