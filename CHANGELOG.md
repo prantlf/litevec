@@ -1,5 +1,25 @@
 # Changes
 
+## [0.6.0](https://github.com/prantlf/litevec/compare/v0.5.0...v0.6.0) (2024-05-06)
+
+### Features
+
+* Store collections in separate files ([778f1a7](https://github.com/prantlf/litevec/commit/778f1a7cbd76d422a51504d78a4be14b8fcbd846))
+
+### Bug Fixes
+
+* Upgrade dependencies ([ad18130](https://github.com/prantlf/litevec/commit/ad181302c3e0a69dc15df4fe459d059f987ed908))
+
+### BREAKING CHANGES
+
+There is no one single file `storage/db` any more.
+Every collection is stored with its name: `storage/<encoded-name>`.
+The `encoded-name` is the collection name encoded as a URI component.
+The previous storage file `storage/db` will be loaded when the service
+starts, separate files will be written and the old `db` file deleted.
+An empty file `storage/._collections` will be created to mark the new
+storage version. Do not delete it.
+
 ## [0.5.0](https://github.com/prantlf/litevec/compare/v0.4.0...v0.5.0) (2024-02-05)
 
 ### Features
