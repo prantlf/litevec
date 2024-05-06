@@ -1,5 +1,11 @@
 # Changes
 
+## [0.6.2](https://github.com/prantlf/litevec/compare/v0.6.1...v0.6.2) (2024-05-06)
+
+### Bug Fixes
+
+* Publish docker image in the same workflow ([f3888c3](https://github.com/prantlf/litevec/commit/f3888c3ac2eaf228c800709652d3a5f569aefda9))
+
 ## [0.6.1](https://github.com/prantlf/litevec/compare/v0.6.0...v0.6.1) (2024-05-06)
 
 ### Bug Fixes
