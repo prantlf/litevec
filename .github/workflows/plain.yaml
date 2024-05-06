@@ -43,7 +43,14 @@ jobs:
         with:
           files: ${{ needs.linux.outputs.changed-files }}
           discard-shelf: false
-      - run: sudo apt-get -y install gcc-aarch64-linux-gnu libssl3
+      - run: |
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy main restricted universe' | sudo tee -a /etc/apt/sources.list
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-security main restricted universe' | sudo tee -a /etc/apt/sources.list
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-backports main restricted universe' | sudo tee -a /etc/apt/sources.list
+          echo 'deb [arch=arm64] http://ports.ubuntu.com/ubuntu-ports jammy-updates main restricted universe' | sudo tee -a /etc/apt/sources.list
+          sudo dpkg --add-architecture arm64
+          sudo apt-get update || true
+          sudo apt-get -y install gcc-aarch64-linux-gnu libssl3 libssl-dev libssl-dev:arm64
       - run: rustup target add aarch64-unknown-linux-gnu
       - run: make build LINUX_ARM=1
       - uses: prantlf/shelve-output-action@v2
