@@ -1,5 +1,11 @@
 # Changes
 
+## [0.6.1](https://github.com/prantlf/litevec/compare/v0.6.0...v0.6.1) (2024-05-06)
+
+### Bug Fixes
+
+* Build linux arm64 binary ([9faf09d](https://github.com/prantlf/litevec/commit/9faf09d722bd1d0737f9f9a191190b762030a44e))
+
 ## [0.6.0](https://github.com/prantlf/litevec/compare/v0.5.0...v0.6.0) (2024-05-06)
 
 ### Features
