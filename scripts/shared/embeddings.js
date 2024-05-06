@@ -14,7 +14,7 @@ export async function index(title, name, chapter, page, partext, parnum, vector)
   const id = `${name}-${parnum}`
   page = String(page)
   parnum = String(parnum)
-  await putJsonToJson(`${vectorDbUrl}/collections/${collection}/embeddings/${encodeURIComponent(id)}`, {
+  await putJsonToJson(`${vectorDbUrl}/collections/${encodeURIComponent(collection)}/embeddings/${encodeURIComponent(id)}`, {
     metadata: { title, name, chapter, page, partext, parnum }, vector
   })
   const duration = Math.trunc(performance.now() - start)
@@ -23,7 +23,7 @@ export async function index(title, name, chapter, page, partext, parnum, vector)
 
 export async function search(query, filter) {
   const start = performance.now()
-  const results = await postJsonToJson(`${vectorDbUrl}/collections/${collection}`, {
+  const results = await postJsonToJson(`${vectorDbUrl}/collections/${encodeURIComponent(collection)}`, {
     k,
     query,
     filter
