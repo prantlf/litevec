@@ -5,6 +5,7 @@ use schemars::JsonSchema;
 use std::{
 	borrow::ToOwned,
 	collections::{BinaryHeap, HashMap},
+	env,
 	fs::{self, File},
 	path::PathBuf,
 	sync::Arc,
@@ -18,7 +19,8 @@ use url_escape::{decode, encode_component};
 use crate::similarity::{get_cache_attr, get_distance_fn, normalize, Distance, ScoreIndex};
 
 lazy_static! {
-	pub static ref STORE_PATH: PathBuf = PathBuf::from("./storage");
+	pub static ref STORE_PATH: PathBuf =
+		PathBuf::from(env::var("LITEVEC_STORAGE").unwrap_or_else(|_| "./storage".to_string()));
 }
 
 #[allow(clippy::module_name_repetitions)]
