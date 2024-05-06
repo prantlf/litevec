@@ -1,5 +1,15 @@
 # Changes
 
+## [0.7.0](https://github.com/prantlf/litevec/compare/v0.6.2...v0.7.0) (2024-05-06)
+
+### Features
+
+* Let storage directory set by LITEVEC_STORAGE ([67acf87](https://github.com/prantlf/litevec/commit/67acf872f680f80c00d35f0c08f14d8efa7612a1))
+
+### Bug Fixes
+
+* Upgrade dependencies ([4ed2e02](https://github.com/prantlf/litevec/commit/4ed2e02b4f0dc0886148e36b1d979265b3e53461))
+
 ## [0.6.2](https://github.com/prantlf/litevec/compare/v0.6.1...v0.6.2) (2024-05-06)
 
 ### Bug Fixes
