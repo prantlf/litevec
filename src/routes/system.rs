@@ -11,6 +11,7 @@ use crate::{db::DbExtension, shutdown};
 pub fn handler() -> ApiRouter {
 	ApiRouter::new()
 		.api_route("/", get(root))
+		.api_route("/ping", get(trigger_ping))
 		.api_route("/shutdown", post(trigger_shutdown))
 }
 
@@ -41,6 +42,10 @@ pub async fn root() -> Json<RootResponse> {
 			rev: option_env!("GIT_REV").map(ToString::to_string),
 		},
 	})
+}
+
+pub async fn trigger_ping() -> StatusCode {
+	StatusCode::NO_CONTENT
 }
 
 pub async fn trigger_shutdown(Extension(db): DbExtension) -> StatusCode {

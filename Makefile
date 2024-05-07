@@ -32,6 +32,9 @@ build:
 start:
 	target/release/litevec &
 
+ping:
+	curl -s -w "%{http_code}" http://localhost:8000/ping
+
 stop:
 	curl -X POST -s -w "%{http_code}" http://localhost:8000/shutdown
 

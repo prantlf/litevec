@@ -1,3 +1,5 @@
+.DS_Store
+.env
 .github
 data
 docker-compose.yml

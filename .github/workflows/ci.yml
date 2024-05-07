@@ -192,7 +192,6 @@ jobs:
     - uses: prantlf/finish-release-action@v1
       with:
         no-node: true
-        debug: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

@@ -18,6 +18,16 @@ Example:
       "version": { "semver": "0.0.1", "rev": "7c20d76",
                    "compile_time": "2023-12-28T20:16:35.888568+00:00" } }
 
+| Method | Path  | Description                       |
+|:-------|:------|:----------------------------------|
+| GET    | /ping | checks that the server is running |
+
+Example:
+
+    curl -s -w "%{http_code}" http://localhost:8000/ping
+
+    204
+
 | Method | Path      | Description           |
 |:-------|:----------|:----------------------|
 | POST   | /shutdown | shut the service down |

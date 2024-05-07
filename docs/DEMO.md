@@ -129,6 +129,7 @@ Remaining [scripts] demonstrate other use cases for the REST API. They have no p
 | index-documents.js   | indexes sample  documents in the collection            |
 | list-embeddings.js   | prints identifiers of all embeddings in the collection |
 | search-phrase.js     | searches for embeddings similar to a phrase            |
+| ping.js              | checks that the server is running                      |
 | shutdown.js          | shuts down the service                                 |
 | shared/embeddings.js | common functions to manage embeddings                  |
 | shared/splitter.js   | text-splitting function                                |
