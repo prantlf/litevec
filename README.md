@@ -27,9 +27,9 @@ For example, run a container for testing purposes exposing the port 8000 which w
 
     docker run -p 8000:8000 --rm -it ghcr.io/prantlf/litevec
 
-For example, run a container named `litevec` in the background, persisting the data in `./litevec-storage` via the volume `/litevec/storage`:
+For example, run a container named `litevec` in the background, persisting the data in `./litevec-storage` via the volume `/storage`:
 
-    docker run -p 8000:8000 -v $PWD/litevec-storage:/litevec/storage \
+    docker run -p 8000:8000 -v $PWD/litevec-storage:/storage \
       -dt --name litevec ghcr.io/prantlf/litevec
 
 And the same task as above, only using Docker Compose (place [docker-compose.yml] to the current directory) to make it easier:

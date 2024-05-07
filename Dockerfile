@@ -1,7 +1,9 @@
 FROM lukemathwalker/cargo-chef:latest-rust-bookworm AS chef
+
 WORKDIR /litevec
 
 FROM chef AS planner
+
 COPY . .
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -12,15 +14,15 @@ COPY . .
 RUN cargo build --release --bin litevec
 
 FROM debian:bookworm-slim as runtime
+
 RUN apt-get update -y && \
     apt-get upgrade -y && \
     apt-get install -y --no-install-recommends libssl3 && \
     rm -rf /var/lib/apt/lists/*
-WORKDIR /litevec
 COPY --from=builder /litevec/target/release/litevec /usr/local/bin/
 
+WORKDIR /
 EXPOSE 8000
-VOLUME ["/storage"]
 ENTRYPOINT ["/usr/local/bin/litevec"]
 
 HEALTHCHECK --interval=5m \
