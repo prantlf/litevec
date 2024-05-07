@@ -24,9 +24,9 @@ jobs:
       id: bump
       with:
         no-node: true
-    - uses: prantlf/shelve-changes-action@v1
+    - uses: prantlf/shelve-changes-action@v2
     - run: make lint build
-    - uses: prantlf/shelve-output-action@v2
+    - uses: prantlf/shelve-output-action@v3
       if: ${{ steps.bump.outputs.bumped == 'true' }}
       with:
         name: litevec
@@ -40,7 +40,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
-    - uses: prantlf/unshelve-changes-action@v1
+    - uses: prantlf/unshelve-changes-action@v2
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         files: ${{ needs.linux.outputs.changed-files }}
@@ -55,7 +55,7 @@ jobs:
         sudo apt-get -y install gcc-aarch64-linux-gnu libssl3 libssl-dev libssl-dev:arm64
     - run: rustup target add aarch64-unknown-linux-gnu
     - run: make build LINUX_ARM=1
-    - uses: prantlf/shelve-output-action@v2
+    - uses: prantlf/shelve-output-action@v3
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         arch: arm64
@@ -69,13 +69,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
-    - uses: prantlf/unshelve-changes-action@v1
+    - uses: prantlf/unshelve-changes-action@v2
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         files: ${{ needs.linux.outputs.changed-files }}
         discard-shelf: false
     - run: make build
-    - uses: prantlf/shelve-output-action@v2
+    - uses: prantlf/shelve-output-action@v3
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         name: litevec
@@ -89,14 +89,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
-    - uses: prantlf/unshelve-changes-action@v1
+    - uses: prantlf/unshelve-changes-action@v2
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         files: ${{ needs.linux.outputs.changed-files }}
         discard-shelf: false
     - run: rustup target add aarch64-apple-darwin
     - run: make build MACOS_ARM=1
-    - uses: prantlf/shelve-output-action@v2
+    - uses: prantlf/shelve-output-action@v3
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         arch: arm64
@@ -110,13 +110,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
-    - uses: prantlf/unshelve-changes-action@v1
+    - uses: prantlf/unshelve-changes-action@v2
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         files: ${{ needs.linux.outputs.changed-files }}
         discard-shelf: false
     - run: cmd /c make-build.bat
-    - uses: prantlf/shelve-output-action@v2
+    - uses: prantlf/shelve-output-action@v3
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         name: litevec
@@ -124,7 +124,7 @@ jobs:
     - run: |
         rustup target add aarch64-pc-windows-msvc
         cmd /c make-build.bat WINDOWS_ARM
-    - uses: prantlf/shelve-output-action@v2
+    - uses: prantlf/shelve-output-action@v3
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         arch: arm64
@@ -139,14 +139,14 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: dtolnay/rust-toolchain@stable
-    - uses: prantlf/unshelve-changes-action@v1
+    - uses: prantlf/unshelve-changes-action@v2
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         files: ${{ needs.linux.outputs.changed-files }}
         discard-shelf: false
     - run: rustup target add aarch64-pc-windows-msvc
     - run: cmd /c make-build.bat WINDOWS_ARM
-    - uses: prantlf/shelve-output-action@v2
+    - uses: prantlf/shelve-output-action@v3
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         arch: arm64
@@ -159,7 +159,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: prantlf/unshelve-changes-action@v1
+    - uses: prantlf/unshelve-changes-action@v2
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         files: ${{ needs.linux.outputs.changed-files }}
@@ -181,12 +181,12 @@ jobs:
     runs-on: macos-13
     steps:
     - uses: actions/checkout@v4
-    - uses: prantlf/unshelve-changes-action@v1
+    - uses: prantlf/unshelve-changes-action@v2
       if: ${{ needs.linux.outputs.changed == 'true' }}
       with:
         files: ${{ needs.linux.outputs.changed-files }}
         discard-shelf: false
-    - uses: prantlf/unshelve-output-action@v5
+    - uses: prantlf/unshelve-output-action@v6
       with:
         name: litevec
     - uses: prantlf/finish-release-action@v1
@@ -204,7 +204,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: prantlf/unshelve-changes-action@v1
+    - uses: prantlf/unshelve-changes-action@v2
       with:
         files: ${{ needs.linux.outputs.changed-files }}
     - uses: docker/metadata-action@v5
