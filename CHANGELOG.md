@@ -1,5 +1,26 @@
 # Changes
 
+## [0.8.0](https://github.com/prantlf/litevec/compare/v0.7.0...v0.8.0) (2024-05-10)
+
+### Features
+
+* Move mappable storage volume from /litevec/storage to /storage ([5f60051](https://github.com/prantlf/litevec/commit/5f60051a52a4a709627bb85ada7194b265b1fb38))
+* Add /api/ping for healthcheck ([40b4145](https://github.com/prantlf/litevec/commit/40b4145c7fe13f73569f9d178e9f5534ecd72869))
+* Support method HEAD for /ping ([fd627a5](https://github.com/prantlf/litevec/commit/fd627a5c1a6389eeca0f41126d2b2b1a733fee3c))
+* Use hash map and set instead of arrays to improve embedding and collection lookups ([ac24883](https://github.com/prantlf/litevec/commit/ac248835fd8bddafaad407e191a62e9b6b6deb19))
+* Add healthcheck to docker-compose example ([7a64cfb](https://github.com/prantlf/litevec/commit/7a64cfbebc44e16112b8567540e7e66ad2eb3e27))
+
+### Bug Fixes
+
+* Do not try migrating old database from empty directory ([bdd606b](https://github.com/prantlf/litevec/commit/bdd606bca703b919f1a9d3fccf72798898cef24f))
+* Upgrade dependencies ([3fc959e](https://github.com/prantlf/litevec/commit/3fc959ed47b4a6727c8ac6cc8420fe35dd3dc959))
+
+### BREAKING CHANGES
+
+Replace the target volume mapping `/litevec/storage`
+with the new value `/storage`. (Internally, the executable moved from
+`/litevec/litevec` to `/litevec`.
+
 ## [0.7.0](https://github.com/prantlf/litevec/compare/v0.6.2...v0.7.0) (2024-05-06)
 
 ### Features
