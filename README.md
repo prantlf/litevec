@@ -74,7 +74,7 @@ System endpoints:
 | Method | Path      | Description                                                 |
 |:-------|:----------|:------------------------------------------------------------|
 | GET    | /         | obtain API metadata                                         |
-| GET    | /ping     | checks that the server is running                           |
+| GET    | /ping     | checks that the server is running (HEAD too)                |
 | POST   | /shutdown | shut the service down (sending SIGTERM or SIGINT works too) |
 
 Documentation endpoints:

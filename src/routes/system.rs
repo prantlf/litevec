@@ -11,7 +11,7 @@ use crate::{db::DbExtension, shutdown};
 pub fn handler() -> ApiRouter {
 	ApiRouter::new()
 		.api_route("/", get(root))
-		.api_route("/ping", get(trigger_ping))
+		.api_route("/ping", get(trigger_ping).head(trigger_ping))
 		.api_route("/shutdown", post(trigger_shutdown))
 }
 
