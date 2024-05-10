@@ -466,16 +466,19 @@ impl Db {
 	}
 
 	fn convert_old_store() -> anyhow::Result<Self> {
-		tracing::debug!("Converting old database store");
 		let db_path = STORE_PATH.join("db");
-		let binary = fs::read(db_path.clone())?;
-		let mut db: Self = bincode::deserialize(&binary[..])?;
-		for collection in &mut db.collections.values_mut() {
-			collection.set_dirty();
+		if db_path.exists() {
+			tracing::debug!("Converting old database store");
+			let binary = fs::read(db_path.clone())?;
+			let mut db: Self = bincode::deserialize(&binary[..])?;
+			for collection in &mut db.collections.values_mut() {
+				collection.set_dirty();
+			}
+			db.store_collections()?;
+			fs::remove_file(db_path)?;
+			return Ok(db);
 		}
-		db.store_collections()?;
-		fs::remove_file(db_path)?;
-		Ok(db)
+		Ok(Self::new())
 	}
 }
 
