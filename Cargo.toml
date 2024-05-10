@@ -29,9 +29,9 @@ percent-encoding = "2.3.1"
 rayon = "1.10.0"
 reqwest = "0.12.4"
 schemars = "0.8.19"
-serde = "1.0.200"
-serde_json = "1.0.116"
-thiserror = "1.0.59"
+serde = "1.0.201"
+serde_json = "1.0.117"
+thiserror = "1.0.60"
 tokio = { version = "1.37.0", features = ["full"] }
 tower-http = { version = "0.5.2", features = [
   "compression-full", "cors", "decompression-full", "limit", "timeout", "trace",
