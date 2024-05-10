@@ -1,9 +1,18 @@
----
 version: '3.8'
 services:
   litevec:
-    image: ghcr.io/prantlf/litevec
+    image: ${IMAGE_HUB-ghcr.io/prantlf/}litevec
+    # environment:
+    #   - RUST_LOG=trace
     ports:
       - 8000:8000
     volumes:
       - ./storage:/storage
+    healthcheck:
+      test: ["CMD", "/healthchk", "-m", "HEAD", "http://localhost:8000/ping"]
+      interval: 60s
+      timeout: 20s
+      start_period: 20s
+      start_interval: 2s
+      retries: 3
+    restart: unless-stopped

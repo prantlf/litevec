@@ -41,15 +41,36 @@ stop:
 clean:
 	rm -rf target
 
-build-docker:
+docker: docker-lint docker-build
+
+docker-lint:
+	docker run --rm -i \
+		-v ${PWD}/.hadolint.yaml:/bin/hadolint.yaml \
+		-e XDG_CONFIG_HOME=/bin hadolint/hadolint \
+		< Dockerfile
+
+docker-build:
 	docker build -t litevec .
 
-start-docker:
-	docker run --rm -dt -p 8000:8000 -v $PWD/storage:/storage \
+docker-start:
+	docker run --rm -dt -p 8000:8000 -v ${PWD}/storage:/storage \
 		--name litevec litevec
 
-kill-docker:
+docker-enter:
+	docker run --rm -it -p 8000:8000 -v ${PWD}/storage:/storage \
+		--entrypoint sh litevec
+
+docker-kill:
 	docker container kill litevec
 
-logs-docker:
+docker-log:
 	docker logs litevec
+
+docker-up:
+	IMAGE_HUB= docker compose -f docker-compose.yml up -d
+
+docker-down:
+	IMAGE_HUB= docker compose -f docker-compose.yml down
+
+docker-log1:
+	docker logs litevec-litevec-1
