@@ -4,7 +4,7 @@ use rayon::prelude::*;
 use schemars::JsonSchema;
 use std::{
 	borrow::ToOwned,
-	collections::{BinaryHeap, HashMap},
+	collections::{BinaryHeap, HashMap, HashSet},
 	env,
 	fs::{self, File},
 	path::PathBuf,
@@ -44,7 +44,7 @@ pub struct Db {
 	pub collections: HashMap<String, Collection>,
 	/// List of deleted collection names since the last storing
 	#[serde(skip)]
-	deleted: Vec<String>,
+	deleted: HashSet<String>,
 }
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize, JsonSchema)]
@@ -64,6 +64,9 @@ pub struct Collection {
 	/// Embeddings in the collection
 	#[serde(default)]
 	pub embeddings: Vec<Embedding>,
+	/// Cache of embedding IDs to improve the speed of the embedding lookups
+	#[serde(skip)]
+	ids: HashMap<String, usize>,
 	/// If the collection was modified and hasn't been saved yet
 	#[serde(skip)]
 	dirty: bool,
@@ -89,7 +92,9 @@ impl Collection {
 
 	pub fn get(&self, id: &str) -> Option<&Embedding> {
 		tracing::debug!("Getting embedding {}", id);
-		self.embeddings.iter().find(|e| e.id == id)
+		self.ids
+			.get(id)
+			.and_then(|index| self.embeddings.get(*index))
 	}
 
 	pub fn get_by_metadata(
@@ -166,11 +171,10 @@ impl Collection {
 
 	pub fn update_metadata(&mut self, id: &str, metadata: Option<HashMap<String, String>>) -> bool {
 		tracing::debug!("Updating embedding {}", id);
-		let embedding = self.embeddings.iter_mut().find(|e| e.id == id);
-
-		match embedding {
+		match self.ids.get(id) {
 			None => false,
-			Some(embedding) => {
+			Some(index) => {
+				let embedding = self.embeddings.get_mut(*index).unwrap();
 				embedding.metadata = metadata;
 				true
 			},
@@ -178,13 +182,11 @@ impl Collection {
 	}
 
 	pub fn delete(&mut self, id: &str) -> bool {
-		let index_opt = self.embeddings.iter().position(|e| e.id == id);
-
-		match index_opt {
+		match self.ids.get(id) {
 			None => false,
 			Some(index) => {
 				tracing::debug!("Deleting embedding {}", id);
-				self.embeddings.remove(index);
+				self.embeddings.remove(*index);
 				true
 			},
 		}
@@ -219,6 +221,12 @@ impl Collection {
 
 		tracing::debug!("Deleted {} embeddings", len);
 		len > 0
+	}
+
+	pub fn index_embeddings(&mut self) {
+		for (index, embedding) in self.embeddings.iter().enumerate() {
+			self.ids.insert(embedding.id.clone(), index);
+		}
 	}
 }
 
@@ -269,7 +277,7 @@ impl Db {
 	pub fn new() -> Self {
 		Self {
 			collections: HashMap::new(),
-			deleted: Vec::<String>::new(),
+			deleted: HashSet::new(),
 		}
 	}
 
@@ -289,12 +297,13 @@ impl Db {
 			dimension,
 			distance,
 			embeddings: Vec::new(),
+			ids: HashMap::new(),
 			dirty: true,
 		};
 
 		let name_for_remove = name.clone();
 		self.collections.insert(name, collection.clone());
-		self.remove_deleted(&name_for_remove);
+		self.deleted.remove(&name_for_remove);
 
 		Ok(collection)
 	}
@@ -307,12 +316,12 @@ impl Db {
 		}
 
 		let mut collection = self.collections.remove(name).ok_or(Error::NotFound)?;
-		self.add_deleted(name);
+		self.deleted.insert(name.to_string());
 
 		collection.set_dirty();
 		let name_for_remove = new_name.clone();
 		self.collections.insert(new_name, collection);
-		self.remove_deleted(&name_for_remove);
+		self.deleted.remove(&name_for_remove);
 
 		Ok(())
 	}
@@ -325,7 +334,7 @@ impl Db {
 		}
 
 		self.collections.remove(name);
-		self.add_deleted(name);
+		self.deleted.insert(name.to_string());
 
 		Ok(())
 	}
@@ -340,7 +349,7 @@ impl Db {
 			.get_mut(collection_name)
 			.ok_or(Error::NotFound)?;
 
-		if collection.embeddings.iter().any(|e| e.id == embedding.id) {
+		if collection.ids.contains_key(&embedding.id) {
 			return Err(Error::UniqueViolation);
 		}
 
@@ -358,6 +367,9 @@ impl Db {
 			embedding.id,
 			collection_name
 		);
+		collection
+			.ids
+			.insert(embedding.id.clone(), collection.embeddings.len() - 1);
 		collection.embeddings.push(embedding);
 		collection.set_dirty();
 
@@ -401,25 +413,6 @@ impl Db {
 		return !self.deleted.is_empty() || self.collections.values().any(Collection::is_dirty);
 	}
 
-	pub fn add_deleted(&mut self, name: &str) {
-		self.deleted.push(name.to_string());
-	}
-
-	pub fn remove_deleted(&mut self, name: &String) -> bool {
-		let deleted_len = self.deleted.len();
-		let deleted_index = self
-			.deleted
-			.iter()
-			.position(|deleted_name| deleted_name == name)
-			.unwrap_or(deleted_len);
-		if deleted_index < deleted_len {
-			self.deleted.remove(deleted_index);
-			true
-		} else {
-			false
-		}
-	}
-
 	pub fn save_to_store(&mut self) -> anyhow::Result<()> {
 		self.delete_collections()?;
 		self.store_collections()
@@ -459,7 +452,8 @@ impl Db {
 			let collection_name = decode(file_name).to_string();
 			tracing::debug!("Loading collection {} from store", collection_name);
 			let binary = fs::read(entry.path())?;
-			let collection: Collection = bincode::deserialize(&binary[..])?;
+			let mut collection: Collection = bincode::deserialize(&binary[..])?;
+			collection.index_embeddings();
 			self.collections.insert(collection_name, collection);
 		}
 		Ok(())
@@ -472,6 +466,7 @@ impl Db {
 			let binary = fs::read(db_path.clone())?;
 			let mut db: Self = bincode::deserialize(&binary[..])?;
 			for collection in &mut db.collections.values_mut() {
+				collection.index_embeddings();
 				collection.set_dirty();
 			}
 			db.store_collections()?;
